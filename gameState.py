@@ -35,9 +35,10 @@ class connectFourGS(gameState):
 		if len(self.board[action]) == 6:
 			return "INVALID MOVE"
 		self.board[action].append(player)
-		return connectFourGS([self.board[0][:], self.board[1][:], self.board[2][:],
+		t = connectFourGS([self.board[0][:], self.board[1][:], self.board[2][:],
 			self.board[3][:], self.board[4][:], self.board[5][:]])
 		self.board[action].pop()
+		return t
 	def getLegalActions(self):
 		actions = set()
 		for i in range(6):
