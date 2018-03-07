@@ -277,7 +277,7 @@ class HeatAgentDiscountHelper(Agent):
 		g = {}
 		for action in gameState.getLegalActions(player):
 			nxt = gameState.getSuccessor(player, action) 
-			value = self.value(nxt, 2, depth)
+			value = self.value(nxt, 1, depth)
 			val = value[0] * self.discount
 			if depth == self.depth - 1:
 				print("MOVE: ", action, " PROBABLY LEADS TO:")
