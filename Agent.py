@@ -1,4 +1,5 @@
 import random
+from math import e
 
 class Agent:
 	depth = 10
@@ -57,7 +58,7 @@ class MinimaxAgent(Agent):
 
 
 class MinimaxAgentDiscount(Agent):
-	def __init__(self, depth = 10):
+	def __init__(self, depth = 10, discount = 1):
 		self.depth = depth
 
 	def value(self, gameState, player, depth):
@@ -71,9 +72,9 @@ class MinimaxAgentDiscount(Agent):
 		if gameState.isLose():
 			return (-1000, None)
 		if player == 1:
-			return self.maxValue(gameState, 1, depth - 1)
+			return self.maxValue(gameState, 1, depth - 1) 
 		else:
-			return self.minValue(gameState, 2, depth - 1)
+			return self.minValue(gameState, 2, depth - 1) 
 
 	def maxValue(self, gameState, player, depth):
 		v = (-100000000, None)
@@ -100,8 +101,9 @@ class MinimaxAgentDiscount(Agent):
 		return 0
 
 class HelperMinimaxAgentDiscount(Agent):
-	def __init__(self, depth = 10):
+	def __init__(self, depth = 10, discount = 1):
 		self.depth = depth
+		self.discount = discount
 
 	def value(self, gameState, player, depth):
 		#Tie Game
@@ -132,7 +134,7 @@ class HelperMinimaxAgentDiscount(Agent):
 				value[2].printBoard()
 				print()
 
-			val = value[0] * discount
+			val = value[0] * self.discount
 			if val > v[0]:
 				v = (val, action, value[2])
 		return v
@@ -150,7 +152,7 @@ class HelperMinimaxAgentDiscount(Agent):
 				value[2].printBoard()
 				print()
 
-			val = value[0] * discount
+			val = value[0] * self.discount
 			if val < v[0]:
 				v = (val, action, value[2])
 		return v
@@ -193,12 +195,12 @@ class HeatAgentDiscount(Agent):
 		for action in gameState.getLegalActions(player):
 			nxt = gameState.getSuccessor(player, action)
 			val = self.value(nxt, 2, depth)[0] * self.discount
-			totalValue += pow(2, self.alpha * val)
+			totalValue += pow(e, self.alpha * val)
 			d[action] = val
 		r = random.uniform(0, 1)
 		running = 0
 		for key in d:
-			running += pow(2, self.alpha * d[key]) / totalValue
+			running += pow(e, self.alpha * d[key]) / totalValue
 			if r <= running:
 				return (d[key], key)
 
@@ -208,12 +210,12 @@ class HeatAgentDiscount(Agent):
 		for action in gameState.getLegalActions(player):
 			nxt = gameState.getSuccessor(player, action) 
 			val = self.value(nxt, 1, depth)[0] * self.discount
-			totalValue += pow(2, self.alpha * val * -1)
+			totalValue += pow(e, self.alpha * val * -1)
 			d[action] = val
 		r = random.uniform(0, 1)
 		running = 0
 		for key in d:
-			running += pow(2, self.alpha * d[key] * -1) / totalValue
+			running += pow(e, self.alpha * d[key] * -1) / totalValue
 			if r <= running:
 				return (d[key], key)
 
@@ -225,10 +227,11 @@ class HeatAgentDiscount(Agent):
 		return 0
 
 class HeatAgentDiscountHelper(Agent):
-	def __init__(self, depth = 10, alpha = 1, discount = 1):
+	def __init__(self, depth = 10, alpha = 1, discount = 1, helpDepth = 10):
 		self.depth = depth
 		self.alpha = alpha
 		self.discount = discount
+		self.helpDepth = helpDepth
 
 	def value(self, gameState, player, depth):
 		#Tie Game
@@ -258,16 +261,16 @@ class HeatAgentDiscountHelper(Agent):
 				value[2].printBoard()
 				print()
 
-			totalValue += pow(2, self.alpha * val)
+			totalValue += pow(e, self.alpha * val)
 			d[action] = val
 			g[action] = value[2]
-		if depth == self.depth - 1:
+		if depth == self.depth - 1: #THE HELPER WANTS TO OPTIMIZE AGAINST AN UNOPTIMAL OPPONENT. DO THIS IF ITS THE OPTIMAL AGENT'S TURN
 			x = max(d, key = lambda x: d[x])
 			return (d[x], x, value[2])
 		r = random.uniform(0, 1)
 		running = 0
 		for key in d:
-			running += pow(2, self.alpha * d[key]) / totalValue
+			running += pow(e, self.alpha * d[key]) / totalValue
 			if r <= running:
 				return (d[key], key, g[key])
 
@@ -283,7 +286,7 @@ class HeatAgentDiscountHelper(Agent):
 				print("MOVE: ", action, " PROBABLY LEADS TO:")
 				value[2].printBoard()
 				print()
-			totalValue += pow(2, self.alpha * val * -1)
+			totalValue += pow(e, self.alpha * val * -1)
 			d[action] = val
 			g[action] = value[2]
 		if depth == self.depth - 1:
@@ -292,7 +295,7 @@ class HeatAgentDiscountHelper(Agent):
 		r = random.uniform(0, 1)
 		running = 0
 		for key in d:
-			running += pow(2, self.alpha * d[key] * -1) / totalValue
+			running += pow(e, self.alpha * d[key] * -1) / totalValue
 			if r <= running:
 				return (d[key], key, g[key])
 

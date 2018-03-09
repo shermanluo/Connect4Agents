@@ -192,9 +192,9 @@ class connectThreeGS(gameState):
 	    | 0 0 0 2 |
 	    | 1 1 2 2 |
 	is represented by:
-	[[1]
-	[1]
-	[2]
+	[[1],
+	[1],
+	[2],
 	[2 2]]'''
 	def __init__(self, board):
 		self.board = board

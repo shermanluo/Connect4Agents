@@ -86,15 +86,25 @@ class Game:
 				action = agentEnemy.getAction(self.gameState, 1)
 				self.gameState = self.gameState.getSuccessor(1, action)
 				player = 2
+def testPredictions(agent, gameState):
+	gameState.printBoard()
+	recommended = agent.getAction(gameState, 2)
+	print("RECOMMENDED: ", recommended)
 
 
 game = Game()
-#game.humanPlay(MinimaxAgent(7)) #Play against a optimal agent
+#game.humanPlay(MinimaxAgent(10)) #Play against a optimal agent
 #game.humanPlay(MinimaxAgentDiscount(5)) #Play against a optimal agent that tries to win quickly
 #game.play(MinimaxAgentDiscount(5), MinimaxAgentDiscount(6)) #P1 tries to win as quickly as possible, P2 tries to delay loss for as long as possible
 #game.play(MinimaxAgent(6), MinimaxAgentDiscount(6)) #P1 tries to win, P2 tries to delay as long as possible assuming P1 tries to win as quickly as possible
 #game.assistedPlay(MinimaxAgent(5), HelperMinimaxAgentDiscount(6)) #HELPER AGENT HELPS U PLAY. HELPER AGENT IS SLIGHTLY MORE OPTIMAL THAN ADVERSIAL (MORE DEPTH)
 #game.humanPlay(HeatAgentDiscount(7, 0.8, 0.8))
-game.assistedPlay(HeatAgentDiscount(7, 1.5, 0.7), HeatAgentDiscountHelper(7, 2, 0.7))
+#game.assistedPlay(HeatAgentDiscount(5, 1.5, 0.8), HeatAgentDiscountHelper(5, 2, 0.8))
 #game.play(HeatAgentDiscount(7, 1, 0.7), HeatAgentDiscount(7, 1, 0.7))
 #game.play(HeatAgentDiscount(4, 2, 0.7), HeatAgentDiscount(8, 2, 0.7))
+#testPredictions()
+#game.humanPlay(HelperMinimaxAgentDiscount(10))
+
+testGS = connectThreeGS([[],[],[1],[]])
+testPredictions(HeatAgentDiscountHelper(10, 2, 0.8), testGS)
+#testPredictions(HelperMinimaxAgentDiscount(10, 0.9), testGS)
