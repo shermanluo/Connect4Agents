@@ -106,7 +106,7 @@ game = Game()
 #game.assistedPlay(MinimaxAgent(5), HelperMinimaxAgentDiscount(6)) #HELPER AGENT HELPS U PLAY. HELPER AGENT IS SLIGHTLY MORE OPTIMAL THAN ADVERSIAL (MORE DEPTH)
 #game.humanPlay(HeatAgentDiscountHelper(9, 1, .9), 1)
 #game.humanPlay(HeatAgentDiscount(9, 1, .9), 1)
-game.assistedPlay(HeatAgentDiscount(4, 1.5, 0.8), HeatAgentDiscountHelper(8, 2, 0.8), 1)
+game.assistedPlay(HeatAgentDiscount(4, 1.5, 0.8), HeatAgentDiscountHelper(4, 2, 0.8), 1)
 #game.play(HeatAgentDiscount(7, 1, 0.7), HeatAgentDiscount(7, 1, 0.7))
 
 #testGS = connectThreeGS([[],[],[1],[]])
