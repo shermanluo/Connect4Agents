@@ -99,14 +99,14 @@ def testPredictions(agent, gameState):
 
 
 game = Game()
-#game.humanPlay(MinimaxAgent(20), 2) #Play against a optimal agent
-#game.humanPlay(MinimaxAgentDiscount(10), 1) #Play against a optimal agent that tries to win quickly
+#game.humanPlay(MinimaxAgent(20), 1) #Play against a optimal agent
+#game.humanPlay(MinimaxAgentDiscount(20), 1) #Play against a optimal agent that tries to win quickly
 #game.play(MinimaxAgentDiscount(5), MinimaxAgentDiscount(6)) #P1 tries to win as quickly as possible, P2 tries to delay loss for as long as possible
 #game.play(MinimaxAgent(6), MinimaxAgentDiscount(6)) #P1 tries to win, P2 tries to delay as long as possible assuming P1 tries to win as quickly as possible
 #game.assistedPlay(MinimaxAgent(5), HelperMinimaxAgentDiscount(6)) #HELPER AGENT HELPS U PLAY. HELPER AGENT IS SLIGHTLY MORE OPTIMAL THAN ADVERSIAL (MORE DEPTH)
-#game.humanPlay(HeatAgentDiscountHelper(9, 0.0, 0.9), 2)
-game.humanPlay(HeatAgentDiscount(20, 1, 1), 2)
-#game.assistedPlay(HeatAgentDiscount(4, 1.5, 0.8), HeatAgentDiscountHelper(8, 2, 0.8), 2)
+#game.humanPlay(HeatAgentDiscountHelper(9, 1, .9), 1)
+#game.humanPlay(HeatAgentDiscount(9, 1, .9), 1)
+game.assistedPlay(HeatAgentDiscount(4, 1.5, 0.8), HeatAgentDiscountHelper(8, 2, 0.8), 1)
 #game.play(HeatAgentDiscount(7, 1, 0.7), HeatAgentDiscount(7, 1, 0.7))
 
 #testGS = connectThreeGS([[],[],[1],[]])

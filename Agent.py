@@ -421,7 +421,7 @@ class HeatAgentDiscountHelper(Agent):
 			totalValue += pow(e, self.alpha * val)
 			d[action] = val
 			g[action] = value[2]
-		if depth == depth - 2:
+		if depth == self.depth - 2:
 			r = random.uniform(0, 1)
 			running = 0
 			for key in d:
