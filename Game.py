@@ -1,6 +1,6 @@
 
 
-from Agent import MinimaxAgent, MinimaxAgentDiscount, RandomAgent, HelperMinimaxAgentDiscount, HeatAgentDiscount, HeatAgentDiscountHelper
+from Agent import MinimaxAgent, MinimaxAgentDiscount, RandomAgent, HelperMinimaxAgentDiscount, HeatAgentDiscount, HeatAgentDiscountHelper,HeatAgentDiscountHelperIntermediate
 from gameState import connectThreeGS
 class Game: 
 
@@ -92,9 +92,9 @@ class Game:
 				self.gameState = self.gameState.getSuccessor(player, action)
 				player = self.flip(player)
 
-def testPredictions(agent, gameState):
+def testPredictions(agent, gameState, player):
 	gameState.printBoard()
-	recommended = agent.getAction(gameState, 2)
+	recommended = agent.getAction(gameState, player)
 	print("RECOMMENDED: ", recommended)
 
 
@@ -106,9 +106,12 @@ game = Game()
 #game.assistedPlay(MinimaxAgent(5), HelperMinimaxAgentDiscount(6)) #HELPER AGENT HELPS U PLAY. HELPER AGENT IS SLIGHTLY MORE OPTIMAL THAN ADVERSIAL (MORE DEPTH)
 #game.humanPlay(HeatAgentDiscountHelper(9, 1, .9), 1)
 #game.humanPlay(HeatAgentDiscount(9, 1, .9), 1)
-game.assistedPlay(HeatAgentDiscount(4, 1.5, 0.8), HeatAgentDiscountHelper(4, 2, 0.8), 1)
+#game.assistedPlay(HeatAgentDiscount(5, 1.5, 0.99), HeatAgentDiscountHelper(5, 2, 0.99), 1)
 #game.play(HeatAgentDiscount(7, 1, 0.7), HeatAgentDiscount(7, 1, 0.7))
 
 #testGS = connectThreeGS([[],[],[1],[]])
-#testPredictions(HeatAgentDiscountHelper(10, 2, 0.8), testGS)
-#testPredictions(HelperMinimaxAgentDiscount(10, 0.9), testGS)
+#testPredictions(HeatAgentDiscountHelper(10, 2, 0.8), testGS, 2)
+#testPredictions(HelperMinimaxAgentDiscount(10, 0.9), testGS, 2)
+
+testGS = connectThreeGS([[2],[1],[2],[1, 1, 2]])
+testPredictions(HeatAgentDiscountHelperIntermediate(4, 1.5, 0.99), testGS, 1)
