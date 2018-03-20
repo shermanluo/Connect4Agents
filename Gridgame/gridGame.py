@@ -7,7 +7,7 @@ def boardCopy(board):
 	return copy
 def doubleSwitch(double):
 	if double == (0,0):
-		return (10,10)
+		return (9,9)
 	return (0,0)
 class gridGame:
 	# | 0 0 0 0 0 0 0 0 0 0 |
@@ -40,7 +40,7 @@ class gridGame:
 
 	def getLegalActions(self):
 		if self.holding:
-			return [(0,0), (10,10)]
+			return [(0,0), (9,9)]
 		actions = []
 		for i in range(0, 10):
 			for j in range(0, 10):
