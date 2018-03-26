@@ -1,3 +1,5 @@
+import numpy as np
+
 def euclidDist(A, B):
     return pow(pow(A[0] - B[0], 2) + pow(A[1] - B[1], 2), 0.5)
 def boardCopy(board):
@@ -19,6 +21,15 @@ def listPrint(lst):
     for i in lst:
         s = s + str(i) + "  "
     print(s)
+def formatPrint(lst, board):
+    # Add leading spaces to align columns of board printout
+    new_lst = []
+    target_len = 2
+    #target_len = np.max([len(str(j)) for i in board for j in i])
+    for i in lst:
+        new_lst.append(" "*(target_len - len(i)) + i)
+    return new_lst
+        
 class gridGame(object):
     # | 0 0 0 0 0 0 0 0 0 0 |
     # | 0 0 0 0 0 0 0 0 0 0 |                       
@@ -78,7 +89,8 @@ class gridGame(object):
     def isOver(self):
         return len(self.getLegalActions()) == 0
 
-    def printBoard(self):
+    def printBoard(self, print_to_screen=True):
+        board = []
         for i in range(0, 10):
             toPrint = []
             for j in range(0, 10):
@@ -88,7 +100,10 @@ class gridGame(object):
                     toPrint.append("2")
                 else:
                     toPrint.append(str(self.board[i][j]))
-            listPrint(toPrint)
+            if print_to_screen:
+                listPrint(toPrint)
+            board.append(formatPrint(toPrint, self.board))
+        return board
 
     def getPiecesandLocations(self):
         ret = set()
