@@ -9,7 +9,8 @@ def euclidDist(A, B):
 class Game: 
 
     def __init__(self):
-        self.gameState = gridGame(4,        [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        # first option
+        self.gameState = gridGame(3,     [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                          [0, 0, 0, 0, 14, 0, 0, 0, 0, 0],
                                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -18,7 +19,20 @@ class Game:
                                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+                                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], \
+                                  double=(0,9), playerLoc=(0,0))
+        # second option
+        #self.gameState = gridGame(3,     [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                                 [0, 0, 0, 12, 0, 0, 0, 0, 0, 0],
+        #                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                                 [0, 0, 10, 0, 0, 0, 0, 6, 0, 0],
+        #                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], \
+        #                          double=(9,0), playerLoc=(9,9))
 
     def humanPlay(self):
         reward = 0
@@ -51,7 +65,7 @@ class Game:
         agent = QSolveAgent()
         agent.value(self.gameState)
         if return_score:
-            return agent.Qvalues, agent.scores
+            return agent.Qvalues, agent.scores, agent.rewards
         return agent.Qvalues
 
     def exploreTree(self):
@@ -88,7 +102,7 @@ class Game:
     def jsonSearchTree(self, output_fname="gridgame_qvals.json"):
         # Generate search tree in json format, for visualization
         import json
-        Qvalues, scores = self.agentSolve(return_score=True)
+        Qvalues, scores, rewards = self.agentSolve(return_score=True)
 
         tree = {}
         start = self.gameState
@@ -116,7 +130,9 @@ class Game:
                     prefix = "Pick up " + str(val) + " at "
                 child_tree["name"] = prefix + str(action) + ": " + \
                                      format(Qvalues[(curr, action)], '.2f') + \
-                                     " [Score: " + \
+                                     " [Reward: " + \
+                                     format(rewards[(curr, action)], '.2f') + \
+                                     ", Total: " + \
                                      format(scores[(curr, action)], '.2f') + "]"
                 child_tree["children"] = []
 
