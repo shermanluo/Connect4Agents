@@ -34,14 +34,15 @@ class QSolveAgent(Agent):
 
     def value(self, gameState, score=0):
         if gameState.isOver():
+            self.scores[gameState] = score
             return (None, 0) 
         values = set()
         for action in gameState.getLegalActions():
             nxt = gameState.getSuccessor(action) #nxt[1] is reward
-            temp = self.value(nxt[0], score+nxt[1])
+            temp = self.value(nxt[0], score + nxt[1])
             value = nxt[1] + temp[1]
             self.Qvalues[(gameState, action)] = value
-            self.scores[(gameState, action)] = score
+            self.scores[gameState] = score
             values.add((action, value))
         return max(values, key = lambda x: x[1])
         
