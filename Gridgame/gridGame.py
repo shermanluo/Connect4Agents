@@ -45,7 +45,7 @@ class gridGame(object):
     #(0,9) is defined at top right
     #(9, 0) is defined as bottom left
     #player starts at (0,0)
-    def __init__(self, numPieces, board = None, holding = None, double = (0,9), playerLoc = (0,0)):
+    def __init__(self, numPieces, board = None, holding = None, double = (0,9), playerLoc = (0,0), actions_taken = []):
         if board:
             self.board = board
         else:
@@ -59,6 +59,7 @@ class gridGame(object):
         self.playerLoc = playerLoc
         self.double = double
         self.numPieces = numPieces
+        self.actions_taken = actions_taken
 
     def getLegalActions(self):
         if self.holding:
@@ -69,6 +70,7 @@ class gridGame(object):
                 if self.board[i][j]:
                     actions.append((i,j))
         return actions
+
     #returns state, reward
     def getSuccessor(self, action):
         dist = euclidDist(action, self.playerLoc)
@@ -76,15 +78,15 @@ class gridGame(object):
             h = self.holding
             if self.double == action:
                 reward = 2 * h - dist
-                return (gridGame(self.numPieces, boardCopy(self.board), None, doubleSwitch(self.double), action), reward)
+                return (gridGame(self.numPieces, boardCopy(self.board), None, doubleSwitch(self.double), action, actions_taken = self.actions_taken + [action]), reward)
             else:
                 reward = h - dist
-                return (gridGame(self.numPieces, boardCopy(self.board), None, self.double, action), reward)
+                return (gridGame(self.numPieces, boardCopy(self.board), None, self.double, action, actions_taken = self.actions_taken + [action]), reward)
 
         h = self.board[action[0]][action[1]]
         newBoard = boardCopy(self.board)
         newBoard[action[0]][action[1]] = 0
-        return (gridGame(self.numPieces - 1, newBoard, h, self.double, action), - dist)
+        return (gridGame(self.numPieces - 1, newBoard, h, self.double, action, actions_taken = self.actions_taken + [action]), - dist)
 
     def isOver(self):
         return len(self.getLegalActions()) == 0
@@ -134,6 +136,7 @@ class gridGame(object):
         else:
             total += 2
         return total
+
     def __eq__(self, game2):
         if self.holding != game2.holding:
             return False
@@ -142,6 +145,11 @@ class gridGame(object):
                 return False
         if (self.playerLoc != game2.playerLoc):
             return False
+        if len(self.actions_taken) != len(game2.actions_taken):
+            return False
+        for i in range(len(self.actions_taken)):
+            if self.actions_taken[i] != game2.actions_taken[i]:
+                return False
         return True
 
 

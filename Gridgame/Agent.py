@@ -29,6 +29,7 @@ class QSolveAgent(Agent):
     def __init__(self, depth = 10, discount = 1):
         self.Qvalues = {}
         self.scores = {}
+        self.rewards = {}
         self.depth = depth
         self.discount = discount
 
@@ -42,7 +43,8 @@ class QSolveAgent(Agent):
             temp = self.value(nxt[0], score + nxt[1])
             value = nxt[1] + temp[1]
             self.Qvalues[(gameState, action)] = value
-            self.scores[gameState] = score
+            self.scores[(gameState, action)] = score + nxt[1]
+            self.rewards[(gameState, action)] = nxt[1]
             values.add((action, value))
         return max(values, key = lambda x: x[1])
         
