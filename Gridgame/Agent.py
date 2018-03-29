@@ -17,13 +17,18 @@ class MaxAgent(Agent):
         self.depth = depth
         self.discount = discount
 
-    def value(self, gameState):
-        if gameState.isOver():
+    def getAction(self, gameState):
+        return self.value(gameState, depth=self.depth)[1][0]
+
+    def value(self, gameState, depth=None):
+        if depth is None:
+            depth = self.depth
+        if gameState.isOver() or depth == 0:
             return (0, [])
         possib = []
         for action in gameState.getLegalActions():
             nxt = gameState.getSuccessor(action)
-            temp = self.value(nxt[0])
+            temp = self.value(nxt[0], depth=depth-1)
             value = nxt[1] + temp[0]
             actions = temp[1][:]
             actions.insert(0, action)
