@@ -6,6 +6,11 @@ class Agent:
     def Agent():
         return 
 
+class K1GreedyAgent(Agent):
+    def __init__(self):
+        pass
+    def getAction(self, gameState):
+        return max([action for action in gameState.getLegalActions()], key = lambda x: gameState.getSuccessor(x)[1])
 
 class MaxAgent(Agent):
     def __init__(self, depth = 10, discount = 1):

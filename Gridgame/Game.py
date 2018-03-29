@@ -154,7 +154,7 @@ class Game:
 
 
     def visual(self):
-        qValues, scores = game.agentSolve(True)
+        qValues, scores, rewards = game.agentSolve(True)
         actions = []
         gs2 = None
         s2 = 0
@@ -497,6 +497,7 @@ class Game:
                     time.sleep(3)
             compareLeaves(gs1, gs2)
         Screen.wrapper(visualGame)
+
 
 
 game = Game()
