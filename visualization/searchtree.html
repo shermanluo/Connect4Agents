@@ -2,6 +2,22 @@
 <!-- Source: http://bl.ocks.org/robschmuecker/7926762 -->
 <meta charset="utf-8">
 <style type="text/css">
+  .container {
+    width: 100%;
+    margin: auto;
+  }
+
+  #tree-options {
+    font-size:12px;
+    font-family:monospace;
+    white-space:pre;
+    width: 20%;
+    float: left;
+  }
+
+  #tree-container {
+    margin-left: 20%;
+  } 
   
     .node {
     cursor: pointer;
@@ -48,6 +64,13 @@
 <script src="https://d3js.org/d3.v3.min.js"></script>
 <script src="dndTree.js"></script>
 <body>
-    <div id="tree-container"></div>
+    <section class="container">
+        <div id="tree-options"></div>
+        <div id="tree-container"></div>
+    </section>
 </body>
+<script>
+var n_json_files = 6;
+show_options(n_json_files);
+</script>
 </html>

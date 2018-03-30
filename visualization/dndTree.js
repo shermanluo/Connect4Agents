@@ -1,9 +1,38 @@
+var N_ROWS_BOARD = 10;
+
+function show_options(n_json_files) {
+    for (var i = 0; i < n_json_files; i++) {
+        var fname = "gridgame_qvals_" + (i+1) + ".json";
+
+        //var board = d3.json(fname, function(error, data) {
+        //$.getJSON(fname, function( data ) {
+
+        $.ajax({
+            url: fname,
+            dataType: 'json',
+            async: false,
+            success: function(data) {
+                var str = "";
+                for (var j = 0; j < N_ROWS_BOARD; j++) {
+                    str = str + data.name.split("\n")[j];
+                    str = str + "<br />";
+                };
+
+                $("#tree-options").append("<p>"+str+"</p>");
+                $("#tree-options").append("<button onclick='load_json(" + '"' +
+                                          fname + '"' +
+                                          ")'> show search tree </button>");
+            }
+        });
+    };
+};
+
+function load_json(filename) {
 // Source: http://bl.ocks.org/robschmuecker/7926762
-// Get JSON data
+// Get JSON data and load into tree
+$("#tree-container").empty();
 
-treeJSON = d3.json("gridgame_qvals.json", function(error, treeData) {
-
-    var N_ROWS_BOARD = 10;
+treeJSON = d3.json(filename, function(error, treeData) {
 
     // Calculate total nodes, max label length
     var totalNodes = 0;
@@ -544,3 +573,5 @@ treeJSON = d3.json("gridgame_qvals.json", function(error, treeData) {
     update(root);
     centerNode(root);
 });
+
+};
