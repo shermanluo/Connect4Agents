@@ -3,6 +3,7 @@ from gridGame import gridGame
 from random import randint
 
 THRESHOLD = 20
+N_BOARDS = 10
 
 def generateRandomBoard(numpieces = 4):
     pieces = {}
@@ -28,21 +29,27 @@ def generateRandomBoard(numpieces = 4):
     double_idx = randint(0,len(double_options)-1)
     return gridGame(numpieces, board, double=double_options[double_idx])
 
-def playGame(game, agent):
+def playGame(game, agent, return_rollout=False):
     curr = game
     total_score = 0
+    rollout = [game]
+    scores = [total_score]
     while curr.getLegalActions():
         curr, score = curr.getSuccessor(agent.getAction(curr))
         total_score += score
+        rollout.append(curr)
+        scores.append(total_score)
+    if return_rollout:
+        return total_score, rollout, scores
     return total_score
 
-def findInterestingBoards():
+def findInterestingBoards(threshold=THRESHOLD, n_boards=N_BOARDS):
     k10agent = MaxAgent(depth=10)
     k2agent = MaxAgent(depth=2)
     k1agent = MaxAgent(depth=1)
     games = []
     n_tried = 0
-    while len(games) < 10:
+    while len(games) < n_boards:
         scoreGreedy = 0
         ggame = generateRandomBoard(4)
         scoreK10 = k10agent.value(ggame)[0]
@@ -50,7 +57,7 @@ def findInterestingBoards():
         scoreK1 = playGame(ggame, k1agent)
         print(scoreK10, scoreK2, scoreK1)
         print("\t", scoreK10-scoreK2, scoreK10-scoreK1)
-        if scoreK10 - scoreK1 >= THRESHOLD and scoreK10 - scoreK2 >= THRESHOLD:
+        if scoreK10 - scoreK1 >= threshold and scoreK10 - scoreK2 >= threshold:
             games.append((ggame, scoreK10, scoreK2, scoreK1))
             print("FOUND")
         n_tried += 1
@@ -60,7 +67,11 @@ def findInterestingBoards():
         game[0].printBoard()
         print("OPTIMAL (K=10)", game[1], "GREEDY (K=1)", game[3], \
               "SUBOPT (K=2)", game[2])
+    return [x[0] for x in games]
 
+def main():
+    findInterestingBoards()
 
-findInterestingBoards()
+if __name__ == "__main__":
+    main()
 

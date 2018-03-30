@@ -103,8 +103,13 @@ class gridGame(object):
                 else:
                     toPrint.append(str(self.board[i][j]))
             if print_to_screen:
-                listPrint(toPrint)
+                #listPrint(toPrint)
+                print(" ".join(formatPrint(toPrint, self.board)))
             board.append(formatPrint(toPrint, self.board))
+        if print_to_screen:
+            print("holding:", self.holding)
+        for i in range(len(board)):
+            board[i] = [x.replace(' 0', ' _') for x in board[i]]
         return board
 
     def getPiecesandLocations(self):
