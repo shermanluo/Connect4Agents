@@ -22,7 +22,7 @@ def find_max_diff_vals_idx(optimal_rollout, human_rollout, optimal_scores, human
     # have the maximum difference in value
     statePairs = {} #optimal, human states
     for t in range(min_t+1, len(optimal_rollout)):
-        for y in range(0, min(t, len(human_rollout))):
+        for y in range(0, len(human_rollout)):
             diff_rewards_sofar = optimal_scores[t] - human_scores[y]
             if abs(diff_rewards_sofar) <= 5:
                 diff_val = value_fn(optimal_rollout[t]) - value_fn(human_rollout[y]) - diff_rewards_sofar
