@@ -15,7 +15,7 @@ from random import randint
 import math
 
 def euclidDist(A, B):
-    return pow(pow(A[0] - B[0], 2) + pow(A[1] - B[1], 2), 0.5)
+    return abs(A[0] - B[0]) + abs(A[1] - B[1])
 class Game: 
 
     def __init__(self):
@@ -28,30 +28,17 @@ class Game:
                                          [0, 0, 0, 0, 0, 0, 0, 20, 0, 0],
                                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                         [0, 0, 10, 0, 0, 0, 0, 6, 0, 0],
+                                         [0, 0, 0, 0, 0, 0, 0, 6, 0, 0],
                                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]],
                                   double=(0,9), playerLoc=(0,0))
-        # second option
-        #self.gameState = gridGame(3,     [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #                                 [0, 0, 0, 12, 0, 0, 0, 0, 0, 0],
-        #                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #                                 [0, 0, 10, 0, 0, 0, 0, 6, 0, 0],
-        #                                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], \
-        #                          double=(9,0), playerLoc=(9,9))
-
     def humanPlay(self):
         reward = 0
         while True:
             self.gameState.printBoard()
+            print(self.gameState.getLegalActions())
             print("Reward: ", reward)
             if self.gameState.isOver():
                 return
-        
             a = int(input())
             b = int(input())                
             nxt = self.gameState.getSuccessor((a, b))
@@ -501,6 +488,7 @@ class Game:
 
 
 game = Game()
-game.visual()
+game.agentPlay()
+#game.visual()
 #game.jsonSearchTree()  # generates json file for visualization purposes
 #game.exploreTree()

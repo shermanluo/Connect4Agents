@@ -1,7 +1,7 @@
 import numpy as np
 
 def euclidDist(A, B):
-    return pow(pow(A[0] - B[0], 2) + pow(A[1] - B[1], 2), 0.5)
+    return abs(A[0] - B[0]) + abs(A[1] - B[1])
 def boardCopy(board):
     copy = []
     for i in board:
@@ -45,7 +45,7 @@ class gridGame(object):
     #(0,9) is defined at top right
     #(9, 0) is defined as bottom left
     #player starts at (0,0)
-    def __init__(self, numPieces, board = None, holding = None, double = (0,9), playerLoc = (0,0), actions_taken = []):
+    def __init__(self, numPieces, board = None, holding = [], double = (0,9), playerLoc = (0,0), actions_taken = []):
         if board:
             self.board = board
         else:
@@ -62,31 +62,37 @@ class gridGame(object):
         self.actions_taken = actions_taken
 
     def getLegalActions(self):
-        if self.holding:
-            return [(0,0), (9,9), (0,9), (9, 0)]
-        actions = []
-        for i in range(0, 10):
-            for j in range(0, 10):
-                if self.board[i][j]:
-                    actions.append((i,j))
-        return actions
+        if len(self.holding) > 0:
+            actions = [(0,0), (9,9), (0,9), (9, 0)]
+            for i in range(0, 10):
+                for j in range(0, 10):
+                    if self.board[i][j]:
+                        actions.append((i,j))
+            return actions
+        else:
+            actions = []
+            for i in range(0, 10):
+                for j in range(0, 10):
+                    if self.board[i][j]:
+                        actions.append((i,j))
+            return actions
 
     #returns state, reward
     def getSuccessor(self, action):
         dist = euclidDist(action, self.playerLoc)
-        if self.holding:
-            h = self.holding
+        if self.holding and action in [(0,0), (9,9), (0,9), (9,0)]:
             if self.double == action:
-                reward = 2 * h - dist
-                return (gridGame(self.numPieces, boardCopy(self.board), None, doubleSwitch(self.double), action, actions_taken = self.actions_taken + [action]), reward)
+                reward = sum([max(h - dist, 0) for h in self.holding]) * len(self.holding) * 0.4
+                return (gridGame(self.numPieces, boardCopy(self.board), [], doubleSwitch(self.double), action, actions_taken = self.actions_taken + [action]), reward)
             else:
-                reward = h - dist
-                return (gridGame(self.numPieces, boardCopy(self.board), None, self.double, action, actions_taken = self.actions_taken + [action]), reward)
+                reward = sum([max(h - dist, 0) for h in self.holding]) * 1
+                return (gridGame(self.numPieces, boardCopy(self.board), [], self.double, action, actions_taken = self.actions_taken + [action]), reward)
 
         h = self.board[action[0]][action[1]]
         newBoard = boardCopy(self.board)
         newBoard[action[0]][action[1]] = 0
-        return (gridGame(self.numPieces - 1, newBoard, h, self.double, action, actions_taken = self.actions_taken + [action]), - dist)
+        copy = [max(h - dist, 0) for h in self.holding]
+        return (gridGame(self.numPieces - 1, newBoard, copy + [h], self.double, action, actions_taken = self.actions_taken + [action]), 0)
 
     def isOver(self):
         return len(self.getLegalActions()) == 0

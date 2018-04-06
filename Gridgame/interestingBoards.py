@@ -11,7 +11,7 @@ def generateRandomBoard(numpieces = 4):
         i = randint(0, 9)
         j = randint(0, 9)
         if (i, j) != (0, 0) and (i, j) != (0, 9) and  (i, j) != (9, 0) and (i, j) != (9, 9) and (i, j) not in pieces:
-            piece = randint(1, 20)
+            piece = randint(20, 40)
             pieces[(i,j)] = piece
     board = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -43,7 +43,7 @@ def playGame(game, agent, return_rollout=False):
         return total_score, rollout, scores
     return total_score
 
-def findInterestingBoards(threshold=THRESHOLD, n_boards=N_BOARDS):
+def findInterestingBoards(threshold=THRESHOLD, n_boards=N_BOARDS, numpieces = 4):
     k10agent = MaxAgent(depth=10)
     k2agent = MaxAgent(depth=2)
     k1agent = MaxAgent(depth=1)
@@ -51,7 +51,7 @@ def findInterestingBoards(threshold=THRESHOLD, n_boards=N_BOARDS):
     n_tried = 0
     while len(games) < n_boards:
         scoreGreedy = 0
-        ggame = generateRandomBoard(4)
+        ggame = generateRandomBoard(numpieces)
         scoreK10 = k10agent.value(ggame)[0]
         scoreK2 = playGame(ggame, k2agent)
         scoreK1 = playGame(ggame, k1agent)

@@ -20,7 +20,7 @@ class MaxAgent(Agent):
     def getAction(self, gameState):
         return self.value(gameState, depth=self.depth)[1][0]
 
-    def value(self, gameState, depth=None):
+    def value(self, gameState, depth = None):
         if depth is None:
             depth = self.depth
         if gameState.isOver() or depth == 0:
@@ -34,6 +34,7 @@ class MaxAgent(Agent):
             actions.insert(0, action)
             possib.append((value, actions))
         return max(possib, key = lambda x: x[0])
+
 
 class QSolveAgent(Agent):
     def __init__(self, depth = 10, discount = 1):
@@ -57,6 +58,7 @@ class QSolveAgent(Agent):
             self.rewards[(gameState, action)] = nxt[1]
             values.add((action, value))
         return max(values, key = lambda x: x[1])
+
         
     def evaluationFunction(self, gameState):
         return 0

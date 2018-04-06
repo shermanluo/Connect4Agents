@@ -86,7 +86,7 @@ def print_whole_rollouts(rollout1, rollout2, chosen_t, value_fn, scores1, scores
 
 def max_diff_vals_explanation(game=None):
     if game is None:
-        game = findInterestingBoards(threshold=10, n_boards=1)[0]
+        game = findInterestingBoards(threshold=20, n_boards=1)[0]
     
     k10agent = MaxAgent(depth=10)
     k2agent = MaxAgent(depth=2)

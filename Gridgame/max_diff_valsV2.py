@@ -22,19 +22,21 @@ def find_max_diff_vals_idx(optimal_rollout, human_rollout, optimal_scores, human
     # have the maximum difference in value
     statePairs = {} #optimal, human states
     for t in range(min_t+1, len(optimal_rollout)):
-        for y in range(0, t):
+        for y in range(0, min(t, len(human_rollout))):
             diff_rewards_sofar = optimal_scores[t] - human_scores[y]
             if abs(diff_rewards_sofar) <= 5:
-                diff_val = value_fn(optimal_rollout[t]) - value_fn(human_rollout[t]) - diff_rewards_sofar
+                diff_val = value_fn(optimal_rollout[t]) - value_fn(human_rollout[y]) - diff_rewards_sofar
                 statePairs[(t, y)] = diff_val
     if not statePairs:
         return None, None
     tup = max(statePairs, key = lambda x: statePairs[x])
+    # if statePairs[tup] <= 0:
+    #     return None, None
     return tup
 
 def print_max_diff_vals(optimal_rollout, human_rollout, value_fn, \
                         optimal_scores, human_scores):
-    assert len(optimal_rollout) == len(human_rollout)
+    #assert len(optimal_rollout) == len(human_rollout)
     curr_t = 0
     chosen_t = []
     while curr_t+1 < len(optimal_rollout):
@@ -71,24 +73,41 @@ def formatScore(score):
     return format(score, '.2f')
 
 def print_whole_rollouts(rollout1, rollout2, chosen_t, value_fn, scores1, scores2):
-    for t in range(len(rollout1)):
+    for t in range(max(len(rollout1), len(rollout2))):
         if t in chosen_t:
             print("[important]")
-        board1 = rollout1[t].printBoard(print_to_screen=False)
-        board2 = rollout2[t].printBoard(print_to_screen=False)
-        for i in range(len(board1)):
-            print(" ".join(board1[i]) + "\t\t" + " ".join(board2[i]))
-        print("holding: " + str(rollout1[t].holding) + "\t\t\t\t" + \
-              "holding: " + str(rollout2[t].holding))
-        print("(score: " + formatScore(scores1[t]) + ")\t\t\t\t" + \
-              "(score: " + formatScore(scores2[t]) + ")")
-        print("(value: " + formatScore(value_fn(rollout1[t])) + ")\t\t\t\t" + \
-              "(value: " + formatScore(value_fn(rollout2[t])) + ")")
-        print()
+        if t < len(rollout1) and t < len(rollout2):
+            board1 = rollout1[t].printBoard(print_to_screen=False)
+            board2 = rollout2[t].printBoard(print_to_screen=False)
+            for i in range(len(board1)):
+                print(" ".join(board1[i]) + "\t\t" + " ".join(board2[i]))
+            print("holding: " + str(rollout1[t].holding) + "\t\t\t\t" + \
+                  "holding: " + str(rollout2[t].holding))
+            print("(score: " + formatScore(scores1[t]) + ")\t\t\t\t" + \
+                  "(score: " + formatScore(scores2[t]) + ")")
+            print("(value: " + formatScore(value_fn(rollout1[t])) + ")\t\t\t\t" + \
+                  "(value: " + formatScore(value_fn(rollout2[t])) + ")")
+            print()
+        elif t < len(rollout1):
+            board1 = rollout1[t].printBoard(print_to_screen=False)
+            for i in range(len(board1)):
+                print(" ".join(board1[i]))
+            print("holding: " + str(rollout1[t].holding))
+            print("(score: " + formatScore(scores1[t]) + ")")
+            print("(value: " + formatScore(value_fn(rollout1[t])) + ")")
+        else:
+            board2 = rollout2[t].printBoard(print_to_screen=False)
+            for i in range(len(board1)):
+                print("                               " + "\t\t" + " ".join(board2[i]))
+            print("holding: " + str(rollout2[t].holding))
+            print("(score: " + formatScore(scores2[t]) + ")")
+            print("(value: " + formatScore(value_fn(rollout2[t])) + ")")
+
+
 
 def max_diff_vals_explanation(game=None):
     if game is None:
-        game = findInterestingBoards(threshold=10, n_boards=1)[0]
+        game = findInterestingBoards(threshold=30, n_boards=1, numpieces = 4)[0]
     
     k10agent = MaxAgent(depth=10)
     k2agent = MaxAgent(depth=2)
@@ -107,19 +126,19 @@ def max_diff_vals_explanation(game=None):
         print(" ".join(start_board[i]))
     print()
     chosen_t = print_max_diff_vals(rolloutK10, rolloutK1, value_fn, scoresK10, scoresK1)
-    print("Entire human (k=1) rollout:\t\t\tEntire optimal rollout:")
-    print_whole_rollouts(rolloutK1, rolloutK10, chosen_t, value_fn, scoresK1, scoresK10)
+    # print("Entire human (k=1) rollout:\t\t\tEntire optimal rollout:")
+    # print_whole_rollouts(rolloutK1, rolloutK10, chosen_t, value_fn, scoresK1, scoresK10)
 
-    print("-----")
-    print("Comparing against human with k=2")
-    print("Starting state:")
-    start_board = rolloutK10[0].printBoard(print_to_screen=False)
-    for i in range(len(start_board)):
-        print(" ".join(start_board[i]))
-    print()
-    chosen_t = print_max_diff_vals(rolloutK2, rolloutK10, value_fn, scoresK2, scoresK10)
-    print("Entire human (k=2) rollout:\t\t\tEntire optimal rollout:")
-    print_whole_rollouts(rolloutK2, rolloutK10, chosen_t, value_fn, scoresK2, scoresK10)
+    # print("-----")
+    # print("Comparing against human with k=2")
+    # print("Starting state:")
+    # start_board = rolloutK10[0].printBoard(print_to_screen=False)
+    # for i in range(len(start_board)):
+    #     print(" ".join(start_board[i]))
+    # print()
+    # chosen_t = print_max_diff_vals(rolloutK2, rolloutK10, value_fn, scoresK2, scoresK10)
+    # print("Entire human (k=2) rollout:\t\t\tEntire optimal rollout:")
+    # print_whole_rollouts(rolloutK2, rolloutK10, chosen_t, value_fn, scoresK2, scoresK10)
 
 def main():
     max_diff_vals_explanation()
