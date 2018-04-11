@@ -49,8 +49,9 @@ def main():
         print("taken: ", human_action)
     state, human_action = human_rollout[maxIndex]
     state.printBoard()
+    print("index: ", maxIndex)
     print("taken: ", human_action, "Qvalue: ", qvalues[(state, human_action)])
-    print("correction: ", bestAction, "Qvalue: ", qvalues[state, maxAction])
+    print("correction: ", maxAction, "Qvalue: ", qvalues[state, maxAction])
 
 
     
