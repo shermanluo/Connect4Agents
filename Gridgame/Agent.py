@@ -37,7 +37,7 @@ class MaxAgent(Agent):
 
 
 class QSolveAgent(Agent):
-    def __init__(self, depth = 10, discount = 1):
+    def __init__(self, depth = 100, discount = 1):
         self.Qvalues = {}
         self.scores = {}
         self.rewards = {}

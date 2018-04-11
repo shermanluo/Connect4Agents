@@ -488,7 +488,8 @@ class Game:
 
 
 game = Game()
-game.agentPlay()
+game.agentSolve()
+#game.agentPlay()
 #game.visual()
 #game.jsonSearchTree()  # generates json file for visualization purposes
 #game.exploreTree()

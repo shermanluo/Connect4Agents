@@ -124,18 +124,22 @@ def max_diff_vals_explanation(game=None):
     start_board = rolloutK10[0].printBoard(print_to_screen=False)
     for i in range(len(start_board)):
         print(" ".join(start_board[i]))
+    k10action = k10agent.getAction(game)
+    print("Optimal action:", k10action, "K1 action", k1agent.getAction(game))
     print()
     chosen_t = print_max_diff_vals(rolloutK10, rolloutK1, value_fn, scoresK10, scoresK1)
+
     # print("Entire human (k=1) rollout:\t\t\tEntire optimal rollout:")
     # print_whole_rollouts(rolloutK1, rolloutK10, chosen_t, value_fn, scoresK1, scoresK10)
 
     # print("-----")
-    # print("Comparing against human with k=2")
-    # print("Starting state:")
-    # start_board = rolloutK10[0].printBoard(print_to_screen=False)
-    # for i in range(len(start_board)):
-    #     print(" ".join(start_board[i]))
-    # print()
+    print("Comparing against human with k=2")
+    print("Starting state:")
+    start_board = rolloutK10[0].printBoard(print_to_screen=False)
+    for i in range(len(start_board)):
+        print(" ".join(start_board[i]))
+    print("Optimal action:", k10action, "K2 action", k2agent.getAction(game))
+    print()
     # chosen_t = print_max_diff_vals(rolloutK2, rolloutK10, value_fn, scoresK2, scoresK10)
     # print("Entire human (k=2) rollout:\t\t\tEntire optimal rollout:")
     # print_whole_rollouts(rolloutK2, rolloutK10, chosen_t, value_fn, scoresK2, scoresK10)

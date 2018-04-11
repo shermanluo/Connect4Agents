@@ -1,4 +1,4 @@
-from Agent import K1GreedyAgent, MaxAgent
+from Agent import K1GreedyAgent, MaxAgent, QSolveAgent
 from gridGame import gridGame
 from random import randint
 
@@ -47,6 +47,8 @@ def findInterestingBoards(threshold=THRESHOLD, n_boards=N_BOARDS, numpieces = 4)
     k10agent = MaxAgent(depth=10)
     k2agent = MaxAgent(depth=2)
     k1agent = MaxAgent(depth=1)
+    qsolve10 = QSolveAgent(depth = 10)
+
     games = []
     n_tried = 0
     while len(games) < n_boards:
