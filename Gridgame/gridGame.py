@@ -110,6 +110,7 @@ class gridGame(object):
                     toPrint.append(str(self.board[i][j]))
             if print_to_screen:
                 #listPrint(toPrint)
+                toPrint = [x.replace('0', ' _') for x in toPrint]
                 print(" ".join(formatPrint(toPrint, self.board)))
             board.append(formatPrint(toPrint, self.board))
         if print_to_screen:

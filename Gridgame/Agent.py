@@ -59,6 +59,7 @@ class QSolveAgent(Agent):
             values.add((action, value))
         return max(values, key = lambda x: x[1])
 
+
         
     def evaluationFunction(self, gameState):
         return 0

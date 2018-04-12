@@ -1,49 +1,39 @@
 #!/usr/bin/env python
 
-"""
-Assumes there are the same number of states between the rollout from s_1^H and
-s_1^R (the states that result from taking the human's chosen action and the
-agent's chosen action, respectively). So we can compare corresponding states
-along these two rollouts: s_t^H and s_t^R.
-
-Generates an explanation in the following way:
-curr_t = 1
-while curr_t+1 < T:
-    t = argmax_{t > curr_t} V(s_t^R) - V(s_t^H)
-    show s_t^H and s_t^R
-    curr_t = t
-"""
-
 from Agent import MaxAgent
 from interestingBoards import findInterestingBoards, playGame
 
-def find_max_diff_vals_idx(optimal_rollout, human_rollout, optimal_scores, human_scores, min_t, value_fn):
+def find_max_diff_vals_idx(optimal_rollout, human_rollout, optimal_scores, human_scores, min_t, min_y, value_fn):
     # Finds index (after min_t) where the corresponding states in the two rollouts
     # have the maximum difference in value
     statePairs = {} #optimal, human states
     for t in range(min_t+1, len(optimal_rollout)):
-        for y in range(0, len(human_rollout)):
+        for y in range(min_y + 1, len(human_rollout)):
             diff_rewards_sofar = optimal_scores[t] - human_scores[y]
-            if abs(diff_rewards_sofar) <= 5:
+            if abs(diff_rewards_sofar) <= 10:
                 diff_val = value_fn(optimal_rollout[t]) - value_fn(human_rollout[y]) - diff_rewards_sofar
                 statePairs[(t, y)] = diff_val
     if not statePairs:
         return None, None
-    tup = max(statePairs, key = lambda x: statePairs[x])
+    tup = max(statePairs[::-1], key = lambda x: statePairs[x])
     # if statePairs[tup] <= 0:
     #     return None, None
     return tup
+def value(scores, index, depth):
+    return scores[index + depth] - scores[index]
+
 
 def print_max_diff_vals(optimal_rollout, human_rollout, value_fn, \
                         optimal_scores, human_scores):
     #assert len(optimal_rollout) == len(human_rollout)
     curr_t = 0
+    y = 0
     chosen_t = []
     while curr_t+1 < len(optimal_rollout):
-        t, y = find_max_diff_vals_idx(optimal_rollout, human_rollout, optimal_scores, human_scores, curr_t, value_fn)
+        t, y = find_max_diff_vals_idx(optimal_rollout, human_rollout, optimal_scores, human_scores, curr_t, -1, value_fn)
         if t is None:
             break
-        print("At optimal timestep " + str(t) + " and human timestep " + str(y) + ":")
+        print("At human timestep " + str(y) + " and optimal timestep " + str(t) + ":")
         print("From human rollout:\t\t\tFrom optimal rollout:")
         human_board = human_rollout[y].printBoard(print_to_screen=False)
         optimal_board = optimal_rollout[t].printBoard(print_to_screen=False)
@@ -53,8 +43,8 @@ def print_max_diff_vals(optimal_rollout, human_rollout, value_fn, \
               "holding: " + str(optimal_rollout[t].holding))
         print("(score: " + formatScore(human_scores[y]) + ")\t\t\t\t" + \
               "(score: " + formatScore(optimal_scores[t]) + ")")
-        print("(K2 value: " + formatScore(value_fn(human_rollout[y])) + ")\t\t\t\t" + \
-              "(K2 value: " + formatScore(value_fn(optimal_rollout[t])) + ")")
+        print("depth 2 value: " + formatScore(value_fn(human_rollout[y])) + ")\t\t\t\t" + \
+              "depth 2 value: " + formatScore(value_fn(optimal_rollout[t])) + ")")
         print()
         curr_t = t
         chosen_t.append(t)
