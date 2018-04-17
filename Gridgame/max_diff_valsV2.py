@@ -15,7 +15,7 @@ def find_max_diff_vals_idx(optimal_rollout, human_rollout, optimal_scores, human
                 statePairs[(t, y)] = diff_val
     if not statePairs:
         return None, None
-    tup = max(statePairs[::-1], key = lambda x: statePairs[x])
+    tup = max(statePairs, key = lambda x: statePairs[x]) #TODO: pick later
     # if statePairs[tup] <= 0:
     #     return None, None
     return tup
