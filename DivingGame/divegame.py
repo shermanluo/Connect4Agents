@@ -48,6 +48,46 @@ class diveGame:
     defaultOxygen = 20
     defaultTank = 20
     defaultTime = 90
+    actions = {
+        0 : (0, 0, "move"),
+        1 : (0, 5, "move"),
+        2 : (0, 9, "move"),
+        3 : (1, 5, "move"),
+        4 : (2, 0, "move"),
+        5 : (3, 9, "move"),
+        6 : (7, 6, "move"),
+        7 : (8, 3, "move"),
+        8 : (10, 9, "move"),
+        9 : (12, 5, "move"),
+        10 : (13, 2, "move"),
+        11 : (10, 1, "move"),
+        12 : (19, 2, "move"),
+        13 : (15, 7, "move"),
+        14 : (20, 35, "tank"),
+        15 : (30, 45, "tank"),
+        16 : (60, 55, "tank"),
+        17 : (None, None, "exit")
+    }
+    actions2 = {
+        (0, 0, "move"),
+        (0, 5, "move"),
+        (0, 9, "move"),
+        (1, 5, "move"),
+        (2, 0, "move"),
+        (3, 9, "move"),
+        (7, 6, "move"),
+        (8, 3, "move"),
+        (10, 9, "move"),
+        (12, 5, "move"),
+        (13, 2, "move"),
+        (10, 1, "move"),
+        (19, 2, "move"),
+        (15, 7, "move"),
+        (20, 35, "tank"),
+        (30, 45, "tank"),
+        (60, 55, "tank"),
+        (None, None, "exit")
+    }
 
     def __init__(self, board = None, playerLoc = (0,0), timeLeft = defaultTime, oxygenLeft = defaultOxygen, holding = [], tankSize = defaultTank, cash = 0, gameOver = False):
         self.board = board
@@ -72,7 +112,13 @@ class diveGame:
         self.cash = cash
         self.gameOver = gameOver
 
+
+    def clone(self):
+        return diveGame(board = boardCopy(self.board), playerLoc = self.playerLoc, timeLeft = self.timeLeft, oxygenLeft = self.oxygenLeft, holding = self.holding[:], tankSize = self.tankSize, cash = self.cash, gameOver = self.gameOver)
+
     def getLegalActions(self):
+        if self.gameOver:
+            return []
         actions = []
         if self.playerLoc[0] == 0:
             actions.append((None, None, "exit"))
@@ -94,16 +140,16 @@ class diveGame:
 
     def getSuccessor(self, action):
         if (action[2] == "exit"):
-            return (diveGame(board = None, playerLoc = None, oxygenLeft = None, 
-                holding = None, tankSize = None, cash = None, gameOver = True), 0)
+            return (diveGame(board = boardCopy(self.board), playerLoc = self.playerLoc, timeLeft = self.timeLeft, oxygenLeft = self.oxygenLeft, 
+                holding = self.holding[:], tankSize = self.tankSize, cash = self.cash, gameOver = True), 0)
 
         if (action[2] == "move"):
             location = (action[0], action[1])
             dist = manDist(self.playerLoc, location)
 
-            if dist > self.oxygenLeft:
-                return (diveGame(board = None, playerLoc = None, oxygenLeft = None, 
-                holding = None, tankSize = None, cash = None, gameOver = True), -10000000)
+            if dist > self.oxygenLeft or dist > self.timeLeft:
+                return (diveGame(board = boardCopy(self.board), playerLoc = location, timeLeft = self.timeLeft - dist, oxygenLeft = self.oxygenLeft - dist, 
+                holding = self.holding[:], tankSize = self.tankSize, cash = 0, gameOver = True), 0)
 
             if location[0] == 0:
                 return (diveGame(board = boardCopy(self.board), playerLoc = location, timeLeft = self.timeLeft - dist, 
@@ -123,6 +169,8 @@ class diveGame:
                 gameOver = False), -tankCost)
 
     def printBoard(self, print_to_screen = True):
+        if self.gameOver:
+            print("GAMEOVER STATE")
         board = []
         for i in range(0, 20):
             toPrint = []
@@ -145,6 +193,37 @@ class diveGame:
         for i in range(len(board)):
             board[i] = [x.replace(' 0', ' _') for x in board[i]]
         return board
+    def compareBoard(self, other):
+        for i in range(0, 20):
+            if self.board[i] != other.board[i]:
+                return False
+        return True
+
+    def __hash__(self):
+        total = 0
+        total += self.playerLoc[0] * 2 + self.playerLoc[1] * 3
+        total *= 10
+        total += sum(self.holding) 
+        total *= 10
+        total += self.tankSize
+        total *= 10 
+        total += self.oxygenLeft + self.timeLeft
+        total += self.cash * 12
+        return total 
+
+    def __eq__(self,other):
+        if self.gameOver != other.gameOver:
+            return False
+        if self.gameOver:
+            return self.cash == other.cash and self.timeLeft == other.timeLeft and self.oxygenLeft == self.oxygenLeft and self.playerLoc == self.playerLoc
+        else:
+            return self.cash == other.cash and self.timeLeft == other.timeLeft and self.oxygenLeft == other.oxygenLeft and \
+            sum(self.holding) == sum(other.holding) and self.playerLoc == other.playerLoc and self.tankSize == other.tankSize and \
+            self.compareBoard(other)
+
+    def __repr__(self):
+        s="Cash: %d"%(self.cash)
+        return s
 
 
 
