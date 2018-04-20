@@ -142,8 +142,18 @@ def BACKUP(node,reward):
 
 
 def getRollout(diveGame, num_sims, nodes):
+    rollout = []
+    scores = []
+    states = []
+    states.append(diveGame)
+    scores.append(diveGame.cash)
+    state = State()
+    state.gs = diveGame
+    node = Node(state)
+    nodes[state] = node
+    startNode = node
     if diveGame.isOver():
-        return [diveGame], [], [diveGame.cash], None
+        return [diveGame], [], [diveGame.cash], startNode
     rollout = []
     scores = []
     states = []
