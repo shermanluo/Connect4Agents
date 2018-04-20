@@ -215,10 +215,10 @@ class diveGame:
         if self.gameOver != other.gameOver:
             return False
         if self.gameOver:
-            return self.cash == other.cash and self.timeLeft == other.timeLeft and self.oxygenLeft == self.oxygenLeft and self.playerLoc == self.playerLoc
+            return self.tankSize == other.tankSize and self.cash == other.cash and self.timeLeft == other.timeLeft and self.oxygenLeft == self.oxygenLeft and self.playerLoc == self.playerLoc and self.holding == other.holding and self.compareBoard(other)
         else:
             return self.cash == other.cash and self.timeLeft == other.timeLeft and self.oxygenLeft == other.oxygenLeft and \
-            sum(self.holding) == sum(other.holding) and self.playerLoc == other.playerLoc and self.tankSize == other.tankSize and \
+            self.holding == other.holding and self.playerLoc == other.playerLoc and self.tankSize == other.tankSize and \
             self.compareBoard(other)
 
     def __repr__(self):
