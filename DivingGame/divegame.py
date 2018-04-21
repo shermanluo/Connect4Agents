@@ -147,7 +147,11 @@ class diveGame:
             location = (action[0], action[1])
             dist = manDist(self.playerLoc, location)
 
-            if dist > self.oxygenLeft or dist > self.timeLeft:
+            if dist > self.oxygenLeft:
+                return (diveGame(board = boardCopy(self.board), playerLoc = location, timeLeft = self.timeLeft - dist, oxygenLeft = self.oxygenLeft - dist, 
+                holding = self.holding[:], tankSize = self.tankSize, cash = 0, gameOver = True), -self.cash)
+
+            if dist > self.timeLeft:
                 return (diveGame(board = boardCopy(self.board), playerLoc = location, timeLeft = self.timeLeft - dist, oxygenLeft = self.oxygenLeft - dist, 
                 holding = self.holding[:], tankSize = self.tankSize, cash = 0, gameOver = True), 0)
 

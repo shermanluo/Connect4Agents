@@ -8,7 +8,7 @@ from divegame import diveGame
 import pdb
 
 #MCTS scalar.  
-SCALAR= 4500
+SCALAR= 3500
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger('MyLogger')
@@ -166,8 +166,7 @@ def getRollout(diveGame, num_sims):
         rollout.append(action)
         states.append(node.state.gs)
         scores.append(node.state.gs.cash)
-        num_sims = 1000
-        count += 1
+        num_sims = 5000
     return states, rollout, scores, startNode
 
 

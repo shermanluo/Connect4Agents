@@ -34,6 +34,8 @@ def getHumanRollout(game, getscore = False):
     return rollout, rewards, scores 
 def getToComeScore(rewards, index):
     return sum(rewards[index:])
+def getSoFarScore(rewards, index):
+    return sum(rewards[:index])
 def printActions(gameState, actions):
     aIter = iter(actions)
     curr = ''
@@ -91,45 +93,63 @@ def main():
     print()
     print("Your Actions:")
     printActions(game, [s[1] for s in human_rollout[:-1]])
-    print("Your score: ", getToComeScore(rewards, 0))
+    finalScore = getToComeScore(rewards, 0)
+    print("Your score: ", finalScore)
     print()
 
     maxAction = None
     maxDiff = 0
     maxIndex = 0
     index = 0
+    Bhscore = 0
+    Brscore = 0
+    BrRollout = None
+    assert humanscores[-1] == finalScore
     for state, human_action in human_rollout:
+        sofar = getSoFarScore(rewards, index)
         if human_action == None:
             break
         #pdb.set_trace()
         #rhscore, hractions = getActions(state.getSuccessor(human_action)[0], 0, 50000)
         s = m2.State()
         s.gs = state
-        rscore, ractions, NA = getActions(state, 1, 1000)
+        rscore, ractions, NA = getActions(state, 1, 100000)
         humanNode = [x for x, y in NA if y == human_action][0]
-        rhscore = humanNode.reward
-        print(index, "| BestAction", ractions[0], "estimated Qvalue: ", formatScore(rscore), "humanAction", human_action,
-            "estimated Qvalue: ", formatScore(rhscore))
+        rhscore = max(humanNode.reward, finalScore)
+        if finalScore <= rscore:
+            print(index, "| BestAction", ractions[0], "~best score: ", formatScore(rscore), "| humanAction", human_action,"~best score: ", formatScore(rhscore))
+        else:
+            rscore = finalScore
+            ractions = [s[1] for s in human_rollout[index:]]
+            print("uh oh, human's score is better than our best estimate!!!")
+            print(index, "| BestAction", ractions[0], "~best score: ", formatScore(rscore), "| humanAction", human_action,
+            "~best score: ", formatScore(rhscore))
         diff = rscore - rhscore
         if diff > maxDiff and human_action != ractions[0]:
             maxDiff = diff
             maxAction = ractions[0]
             maxIndex = index
+            Bhscore = rhscore
+            Brscore = rscore
+            BrRollout = ractions
         index += 1
 
     state, human_action = human_rollout[maxIndex]
     print("Fatal Flaw state")
     state.printBoard()
     print()
+    print("Your actions: ")
+    printActions(game, [s[1] for s in human_rollout])
     print("There was a fatal flaw at action index", maxIndex)
     print()
-    print("You took: ", human_action, "with a to-come score of ", formatScore(getToComeScore(rewards, maxIndex)))
-    # print("Your actions starting at fatal flaw:")
-    # printActions(state, [s[1] for s in human_rollout[maxIndex : -1]])
-    # print()
-    # print("You should have taken: ", maxAction, "with a possible to-come score of ", formatScore(qvalues[state, maxAction]))
-    # print("Optimal actions starting at fatal flaw, starting with corrected action:")
-    # rR, rA, rS = getActions(state, qvalues)
+    print("You took: ", human_action, "~best score of", Bhscore)
+    print("Your actions starting at fatal flaw:")
+    printActions(state, [s[1] for s in human_rollout[maxIndex : -1]])
+    print()
+    print("You should have taken: ", maxAction, "with a ~best score of ", Brscore)
+    print("Optimal actions starting at fatal flaw, starting with corrected action:")
+    printActions(state, BrRollout + [None])
+    print("You could have gotten", Brscore)
     # printActions(state, rA)
     # hR = [x[0] for x in human_rollout][maxIndex:]
     # hS = [score - humanscores[maxIndex] for score in humanscores][maxIndex:]
