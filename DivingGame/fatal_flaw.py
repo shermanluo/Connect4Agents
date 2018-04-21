@@ -60,20 +60,19 @@ def printActions(gameState, actions):
         else:
             curr += "|" + str(gameState.board[action[0]][action[1]])
 
-def getActions(state, depth, num_iters, nodes):
+def getActions(state, depth, num_iters):
     if state.isOver():
         s = m2.State()
         s.gs = state
         node = m2.Node(s)
         node.reward = s.gs.cash
-        nodes[s] = node
         return state.cash, []
     bestScore = 0
     bestActions = []
     NA = []
     for i in state.getLegalActions():
         nxt = state.getSuccessor(i)
-        states, rollout, scores, node = m2.getRollout(nxt[0], num_iters, nodes)
+        states, rollout, scores, node = m2.getRollout(nxt[0], num_iters)
         value = scores[-1]
         NA.append((node, i))
         if value >= bestScore:
@@ -106,8 +105,7 @@ def main():
         #rhscore, hractions = getActions(state.getSuccessor(human_action)[0], 0, 50000)
         s = m2.State()
         s.gs = state
-        nodes = {}
-        rscore, ractions, NA = getActions(state, 1, 50000, nodes)
+        rscore, ractions, NA = getActions(state, 1, 1000)
         humanNode = [x for x, y in NA if y == human_action][0]
         rhscore = humanNode.reward
         print(index, "| BestAction", ractions[0], "estimated Qvalue: ", formatScore(rscore), "humanAction", human_action,

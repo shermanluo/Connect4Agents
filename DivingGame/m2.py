@@ -45,9 +45,8 @@ class Node():
         self.state=state
         self.children=[]
         self.parent=parent  
-    def add_child(self,child_state, move, nodes):
+    def add_child(self,child_state, move):
         child=Node(child_state,self)
-        nodes[child_state] = child
         self.children.append((child, move))
         return child
     def update(self,reward):
@@ -67,39 +66,37 @@ class Node():
         
 
 
-def UCTSEARCH(budget,root, nodes):
+def UCTSEARCH(budget,root):
     #print("searching...")
-    if not root.state:
-        nodes[root.state] = root
     for iter in range(int(budget)):
         if iter%10000==9999:
             logger.info("simulation: %d"%iter)
             logger.info(root)
-        front=TREEPOLICY(root, nodes)
-        reward, front =DEFAULTPOLICY(front, nodes)
+        front=TREEPOLICY(root)
+        reward, front =DEFAULTPOLICY(front)
         BACKUP(front,reward)
     return BESTCHILD(root,0, True)
 
-def TREEPOLICY(node, nodes):
+def TREEPOLICY(node):
     #a hack to force 'exploitation' in a game where there are many options, and you may never/not want to fully expand first
     while node.state.terminal()==False:
         if len(node.children)==0:
-            return EXPAND(node, nodes)
+            return EXPAND(node)
         elif random.uniform(0,1)<.5:
             node=BESTCHILD(node,SCALAR)
         else:
             if node.fully_expanded()==False:    
-                return EXPAND(node, nodes)
+                return EXPAND(node)
             else:
                 node=BESTCHILD(node,SCALAR)
     return node
 
-def EXPAND(node, nodes):
+def EXPAND(node):
     tried_children=[d for c, d in node.children]
     new_state, move =node.state.next_state()
     while move in tried_children:
         new_state, move=node.state.next_state()
-    node.add_child(new_state, move, nodes)
+    node.add_child(new_state, move)
     return node.children[-1][0]
 
 #current this uses the most vanilla MCTS formula it is worth experimenting with THRESHOLD ASCENT (TAGS)
@@ -124,13 +121,13 @@ def BESTCHILD(node,scalar, action = False):
         return random.choice(bestchildren)
     return random.choice(bestchildren)[0]
 
-def DEFAULTPOLICY(node, nodes):
+def DEFAULTPOLICY(node):
     while node.state.terminal()==False:
         state, action = node.state.next_state()
         if Node(state) in node.children:
-            node = nodes[state]
+            node = [x for x in node.children if Node(state) == x]
         else:
-            node = node.add_child(state, action, nodes)
+            node = node.add_child(state, action)
     return node.state.reward(), node
 
 def BACKUP(node,reward):
@@ -141,7 +138,7 @@ def BACKUP(node,reward):
     return
 
 
-def getRollout(diveGame, num_sims, nodes):
+def getRollout(diveGame, num_sims):
     rollout = []
     scores = []
     states = []
@@ -150,8 +147,8 @@ def getRollout(diveGame, num_sims, nodes):
     state = State()
     state.gs = diveGame
     node = Node(state)
-    nodes[state] = node
     startNode = node
+    startNode.reward = startNode.state.gs.cash
     if diveGame.isOver():
         return [diveGame], [], [diveGame.cash], startNode
     rollout = []
@@ -162,26 +159,15 @@ def getRollout(diveGame, num_sims, nodes):
     state = State()
     state.gs = diveGame
     node = Node(state)
-    nodes[state] = node
     startNode = node
-
-    node, action=UCTSEARCH(num_sims, node, nodes)
-
-    states.append(node.state.gs)
-    scores.append(node.state.gs.cash)
-    rollout.append(action)
     while not node.state.gs.isOver():
-        #node.state.gs.printBoard()
-        try:
-            node, action = BESTCHILD(node, 0, True)
-        except:
-            pdb.set_trace()
-            node.state.gs.printBoard()
-            print(node.state.terminal(), node.reward, len(node.children))
-            1 / 0
+        UCTSEARCH(num_sims, node)
+        node, action = BESTCHILD(node, 0, True)
         rollout.append(action)
         states.append(node.state.gs)
         scores.append(node.state.gs.cash)
+        num_sims = 1000
+        count += 1
     return states, rollout, scores, startNode
 
 
@@ -199,7 +185,6 @@ if __name__=="__main__":
     state = State()
     state.gs = s
     current_node=Node(State())
-    nodes[State()] = current_node
     current_node.state.gs.printBoard()
     while not current_node.state.gs.isOver():
         temp, action=UCTSEARCH(args.num_sims,current_node)
@@ -210,5 +195,4 @@ if __name__=="__main__":
         current_node = temp
         current_node.state.gs.printBoard()
         print("--------------------------------")   
-        print("Nodes:", len(nodes))
             
