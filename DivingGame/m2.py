@@ -6,9 +6,12 @@ import logging
 import argparse
 from divegame import diveGame
 import pdb
+from joblib import Parallel, delayed
 
 #MCTS scalar.  
 SCALAR= 3500
+
+N_CORES = 4
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger('MyLogger')
@@ -56,6 +59,14 @@ class Node():
         if len(self.children)==len(self.state.gs.getLegalActions()):
             return True
         return False
+    def return_copy(self):
+        n = Node(self.state)
+        n.visits = self.visits
+        n.reward = self.reward
+        if self.parent is not None:
+            n.parent = self.parent.return_copy()
+        n.children = [(c.return_copy(),move) for c,move in self.children]
+        return n
     def __repr__(self):
         s="Node; children: %d; visits: %d; Projected reward: %f"%(len(self.children),self.visits,self.reward)
         return s
@@ -63,8 +74,48 @@ class Node():
         if other == None:
             return False
         return self.state == other.state
-        
 
+def merge_trees(root1, root2):
+    assert root1.state == root2.state and root1.parent == root2.parent
+    children = []
+    for c1,m1 in root1.children:
+        c2 = [c for c,m in root2.children if c.state == c1.state and m == m1]
+        if len(c2) > 0:
+            assert len(c2) == 1
+            merge_trees(c1, c2[0])
+        children.append((c1, m1))
+    for c2,m2 in root2.children:
+        c1 = [c for c,m in root1.children if c.state == c2.state and m == m2]
+        if len(c1) == 0:
+            children.append((c2, m2))
+    root1.children = children
+    root1.visits += root2.visits
+    root1.reward = max(root1.reward, root2.reward)
+    return root1
+
+def UCTSEARCHPARALLEL(budget,root):
+    # Root parallelization: creates separate subtree (starting from root) per
+    # process, with budget/N_CORES rollouts per process. Then merges these together.
+    #
+    # not worth parallelization for less than 10k budget (because of overhead)
+    if budget < 10000:
+        return UCTSEARCH(budget, root)
+
+    print("Starting parallel search, with budget", budget)
+
+    pool = Parallel(n_jobs=N_CORES)
+    results = pool(delayed(UCTSEARCHP)(int(budget/N_CORES), root) for i in range(N_CORES))
+
+    # merge trees
+    for other_root in results:
+        merge_trees(root, other_root)
+
+    return BESTCHILD(root, 0, True)
+
+def UCTSEARCHP(budget, root):
+    random.seed()
+    UCTSEARCH(budget, root)
+    return root
 
 def UCTSEARCH(budget,root):
     #print("searching...")
@@ -151,15 +202,6 @@ def getRollout(diveGame, num_sims):
     startNode.reward = startNode.state.gs.cash
     if diveGame.isOver():
         return [diveGame], [], [diveGame.cash], startNode
-    rollout = []
-    scores = []
-    states = []
-    states.append(diveGame)
-    scores.append(diveGame.cash)
-    state = State()
-    state.gs = diveGame
-    node = Node(state)
-    startNode = node
     while not node.state.gs.isOver():
         UCTSEARCH(num_sims, node)
         node, action = BESTCHILD(node, 0, True)
@@ -168,9 +210,6 @@ def getRollout(diveGame, num_sims):
         scores.append(node.state.gs.cash)
         num_sims = 5000
     return states, rollout, scores, startNode
-
-
-
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='MCTS research code')

@@ -4,6 +4,7 @@
 import m2
 from divegame import diveGame
 import pdb
+from joblib import Parallel, delayed
 #returns state, action rollout. Last action will be None
 def formatScore(score):
     return format(score, '.2f')
@@ -69,21 +70,20 @@ def getActions(state, depth, num_iters):
         node = m2.Node(s)
         node.reward = s.gs.cash
         return state.cash, []
-    bestScore = 0
-    bestActions = []
-    NA = []
-    for i in state.getLegalActions():
-        nxt = state.getSuccessor(i)
-        states, rollout, scores, node = m2.getRollout(nxt[0], num_iters)
-        value = scores[-1]
-        NA.append((node, i))
-        if value >= bestScore:
-            bestActions = [i] + rollout
-            bestScore = value
+
+    actions = state.getLegalActions()
+    nxt_states = [state.getSuccessor(i) for i in actions]
+    pool = Parallel(n_jobs=len(nxt_states))
+    results = pool(delayed(m2.getRollout)(nxt[0], num_iters) for nxt in nxt_states)
+
+    values = [scores[-1] for _,_,scores,_ in results]
+    bestIdx = max(range(len(values)), key = lambda x: values[x])
+    bestScore = values[bestIdx]
+    assert bestScore == max(values)
+    bestActions = [actions[bestIdx]] + results[bestIdx][1]
+    NA = [(results[i][-1],actions[i]) for i in range(len(results))]
+
     return bestScore, bestActions, NA
-
-
-
 
 def main():
     game = diveGame()
@@ -116,6 +116,7 @@ def main():
         rscore, ractions, NA = getActions(state, 1, 100000)
         humanNode = [x for x, y in NA if y == human_action][0]
         rhscore = max(humanNode.reward, finalScore)
+
         if finalScore <= rscore:
             print(index, "| BestAction", ractions[0], "~best score: ", formatScore(rscore), "| humanAction", human_action,"~best score: ", formatScore(rhscore))
         else:
