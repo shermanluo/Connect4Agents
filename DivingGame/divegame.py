@@ -99,7 +99,6 @@ class diveGame:
             self.board[7][6] = 23
             self.board[8][3] = 24
             self.board[10][9] = 31
-            self.board[12][5] = 15
             self.board[13][2] = 52
             self.board[10][1] = 29
             self.board[19][2] = 161
@@ -132,7 +131,7 @@ class diveGame:
                         if manDist(self.playerLoc, (i, j)) <= self.timeLeft:
                             actions.append((i , j, "move"))
         for i in range(10):
-            if not (self.playerLoc[1] == i and self.playerLoc[0] == 0) and i == 0 or i == 5 or i == 9:
+            if not (self.playerLoc[1] == i and self.playerLoc[0] == 0) and i == 0 or i == 9:
                 actions.append((0, i, "move"))
         return actions
     def isOver(self):
