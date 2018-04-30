@@ -4,8 +4,15 @@
 import m2
 from divegame import diveGame
 import pdb
+from Agent import QSolveAgent, MaxAgent
+from max_diff_valsV2 import print_max_diff_vals
 from joblib import Parallel, delayed
+from comparison import explain
+import pickle
 #returns state, action rollout. Last action will be None
+
+NUM_ITERS = 160000
+
 def formatScore(score):
     return format(score, '.2f')
 def getHumanRollout(game, getscore = False):
@@ -15,12 +22,14 @@ def getHumanRollout(game, getscore = False):
     actions = game.getLegalActions()
     score = 0
     game.printBoard()
-    m = [2,0,9,1,4,5,2,6,1,7,5,0]
+    m = [1, 1, 9, 1, 1, 1, 7, 2, 6, 0]
     iterm = iter(m)
     while actions:
         print("SCORE: ", score)
         scores.append(score)
         [print(str(a) + ": " + str(b)) for a, b in enumerate(actions)]
+        #i = int(input())
+        #m.append(i)
         i = next(iterm)
         rollout.append((game, actions[i]))
         nxt = game.getSuccessor(actions[i])
@@ -29,6 +38,7 @@ def getHumanRollout(game, getscore = False):
         rewards.append(nxt[1])
         actions = game.getLegalActions()
         game.printBoard()
+    print(m)
     rollout.append((game, None))
     print("SCORE: ", score)
     scores.append(score)
@@ -76,14 +86,15 @@ def getActions(state, depth, num_iters):
     pool = Parallel(n_jobs=len(nxt_states))
     results = pool(delayed(m2.getRollout)(nxt[0], num_iters) for nxt in nxt_states)
 
+
     values = [scores[-1] for _,_,scores,_ in results]
+    bestStates = [states for states,_,_,_ in results]
     bestIdx = max(range(len(values)), key = lambda x: values[x])
     bestScore = values[bestIdx]
     assert bestScore == max(values)
     bestActions = [actions[bestIdx]] + results[bestIdx][1]
     NA = [(results[i][-1],actions[i]) for i in range(len(results))]
-
-    return bestScore, bestActions, NA
+    return bestScore, bestActions, NA, [state] + bestStates[bestIdx]
 
 def main():
     game = diveGame()
@@ -104,6 +115,7 @@ def main():
     Bhscore = 0
     Brscore = 0
     BrRollout = None
+    BrActions = None
     assert humanscores[-1] == finalScore
     for state, human_action in human_rollout:
         sofar = getSoFarScore(rewards, index)
@@ -113,7 +125,7 @@ def main():
         #rhscore, hractions = getActions(state.getSuccessor(human_action)[0], 0, 50000)
         s = m2.State()
         s.gs = state
-        rscore, ractions, NA = getActions(state, 1, 100000)
+        rscore, ractions, NA, rstates = getActions(state, 1, NUM_ITERS)
         humanNode = [x for x, y in NA if y == human_action][0]
         rhscore = max(humanNode.reward, finalScore)
 
@@ -132,7 +144,8 @@ def main():
             maxIndex = index
             Bhscore = rhscore
             Brscore = rscore
-            BrRollout = ractions
+            BrRollout = rstates
+            BrActions = ractions
         index += 1
 
     state, human_action = human_rollout[maxIndex]
@@ -149,22 +162,31 @@ def main():
     print()
     print("You should have taken: ", maxAction, "with a ~best score of ", Brscore)
     print("Optimal actions starting at fatal flaw, starting with corrected action:")
-    printActions(state, BrRollout + [None])
+    printActions(state, BrActions + [None])
     print("You could have gotten", Brscore)
-    # printActions(state, rA)
-    # hR = [x[0] for x in human_rollout][maxIndex:]
-    # hS = [score - humanscores[maxIndex] for score in humanscores][maxIndex:]
-    # print()
-    # print("Starting Fatal Flaw state")
-    # state.printBoard()
-    # k2Agent = MaxAgent(depth=2)
-    # valuefn = lambda s: k2Agent.value(s)[0]
-    # print_max_diff_vals(rR, hR, valuefn, rS, hS)
+ 
+    print("Starting Fatal Flaw state")
+
+    state.printBoard()
+
+    k2Agent = MaxAgent(depth=2)
+    valuefn = lambda s: k2Agent.value(s)[0]
+    hR = [x[0] for x in human_rollout][maxIndex:]
+    hS = [x.cash for x in hR]
+    rS = [x.cash for x in BrRollout]
+
+    f = open('store.pckl', 'wb')
+    pickle.dump((BrRollout, rS, hR, hS), f)
+    f.close()
+    #print_max_diff_vals(BrRollout, hR, valuefn, rS, hS)
+    explain(BrRollout, rS)
 
 
 
-
-    
+def testPickle():
+    f = open('store.pckl', 'rb')
+    rR, rS, hR, hS = pickle.load(f)
+    return rR, rS, hR, hS
 
 if __name__ == "__main__":
     main()

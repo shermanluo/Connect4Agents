@@ -44,10 +44,10 @@ class diveGame:
     #(0,9) is defined at top right
     #(19,0) is defined as bottom left
     #player starts at (0,0)
-    tanks = {(20, 35, "tank"), (30, 45, "tank"), (60, 55, "tank")} #cost, size
+    tanks = {(20, 30, "tank"), (40, 45, "tank"), (60, 55, "tank")} #cost, size
     defaultOxygen = 20
     defaultTank = 20
-    defaultTime = 90
+    defaultTime = 85
     actions = {
         0 : (0, 0, "move"),
         1 : (0, 5, "move"),
@@ -93,16 +93,16 @@ class diveGame:
         self.board = board
         if not board and playerLoc:
             self.board = zeroBoard()
-            self.board[1][5] = 5
-            self.board[2][0] = 16
+            self.board[1][5] = 9
+            self.board[3][2] = 15
             self.board[3][9] = 21
-            self.board[7][6] = 23
-            self.board[8][3] = 24
-            self.board[10][9] = 31
-            self.board[13][2] = 52
+            self.board[7][6] = 26
+            self.board[8][3] =  21
+            self.board[11][9] = 41
+            self.board[13][4] = 52
             self.board[10][1] = 29
-            self.board[19][2] = 161
-            self.board[15][7] = 75
+            self.board[19][2] = 151
+            self.board[16][7] = 79
         self.playerLoc = playerLoc
         self.timeLeft = timeLeft
         self.tankSize = tankSize
@@ -131,7 +131,7 @@ class diveGame:
                         if manDist(self.playerLoc, (i, j)) <= self.timeLeft:
                             actions.append((i , j, "move"))
         for i in range(10):
-            if not (self.playerLoc[1] == i and self.playerLoc[0] == 0) and i == 0 or i == 9:
+            if not (self.playerLoc[1] == i and self.playerLoc[0] == 0) and (i == 0 or i == 9):
                 actions.append((0, i, "move"))
         return actions
     def isOver(self):
