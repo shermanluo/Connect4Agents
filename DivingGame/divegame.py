@@ -93,7 +93,7 @@ class diveGame:
         self.board = board
         if not board and playerLoc:
             self.board = zeroBoard()
-            self.board[1][5] = 9
+            self.board[1][5] = 11
             self.board[3][2] = 15
             self.board[3][9] = 21
             self.board[7][6] = 26

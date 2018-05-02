@@ -9,7 +9,7 @@ import pdb
 from joblib import Parallel, delayed
 
 #MCTS scalar.  
-SCALAR= 3500
+SCALAR= 4000
 
 N_CORES = 4
 

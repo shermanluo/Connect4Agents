@@ -7,8 +7,10 @@ import pdb
 from Agent import QSolveAgent, MaxAgent
 from max_diff_valsV2 import print_max_diff_vals
 from joblib import Parallel, delayed
-from comparison import explain
+from comparison import explainKgreatestPlus1, explainKgreatest, explainIncreasinglyLarge, explainIncreasinglyLargePlus1, skip2
 import pickle
+import argparse
+
 #returns state, action rollout. Last action will be None
 
 NUM_ITERS = 160000
@@ -22,7 +24,7 @@ def getHumanRollout(game, getscore = False):
     actions = game.getLegalActions()
     score = 0
     game.printBoard()
-    m = [1, 1, 9, 1, 1, 1, 7, 2, 6, 0]
+    m = [2, 0, 0, 8, 1, 4, 7, 1, 5, 3, 0, 3, 0]
     iterm = iter(m)
     while actions:
         print("SCORE: ", score)
@@ -38,7 +40,7 @@ def getHumanRollout(game, getscore = False):
         rewards.append(nxt[1])
         actions = game.getLegalActions()
         game.printBoard()
-    print(m)
+    #print(m)
     rollout.append((game, None))
     print("SCORE: ", score)
     scores.append(score)
@@ -55,11 +57,11 @@ def printActions(gameState, actions):
         if not action:
             curr += "|DIED"
             print(curr)
-            return
+            return curr
         elif action[2] == "exit":
             curr += "|EXIT"
             print(curr)
-            return
+            return curr
         elif action in {(0,0, "move"),(0,5, "move"),(0,9, "move")}:
             if action == (0,0, "move"):
                 drop = "Top Left"
@@ -147,7 +149,7 @@ def main():
             BrRollout = rstates
             BrActions = ractions
         index += 1
-
+    BrActions = BrActions + [None]
     state, human_action = human_rollout[maxIndex]
     print("Fatal Flaw state")
     state.printBoard()
@@ -162,7 +164,7 @@ def main():
     print()
     print("You should have taken: ", maxAction, "with a ~best score of ", Brscore)
     print("Optimal actions starting at fatal flaw, starting with corrected action:")
-    printActions(state, BrActions + [None])
+    printActions(state, BrActions)
     print("You could have gotten", Brscore)
  
     print("Starting Fatal Flaw state")
@@ -176,17 +178,51 @@ def main():
     rS = [x.cash for x in BrRollout]
 
     f = open('store.pckl', 'wb')
-    pickle.dump((BrRollout, rS, hR, hS), f)
+    pickle.dump((BrRollout, rS, hR, hS, BrActions, [x[1] for x in human_rollout][maxIndex:]), f)
     f.close()
     #print_max_diff_vals(BrRollout, hR, valuefn, rS, hS)
     explain(BrRollout, rS)
 
 
 
-def testPickle():
+def getPickle():
     f = open('store.pckl', 'rb')
-    rR, rS, hR, hS = pickle.load(f)
-    return rR, rS, hR, hS
+    rR, rS, hR, hS, rA, hA = pickle.load(f)
+    return rR, rS, hR, hS, rA, hA  
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=':)')
+    parser.add_argument('phase')
+    parser.add_argument('hr')
+    args = parser.parse_args()
+    if args.phase == '1':
+        main()
+    elif args.phase == '2':       
+        rR, rS, hR, hS, rA, hA = getPickle()
+        if args.hr == 'r':
+            rollout = rR
+            score = rS 
+            actions = rA
+        if args.hr == 'h':
+            rollout = hR
+            score = hS
+            actions = hA
+        info = printActions(rollout[0], actions)
+
+        print("0 | explainKgreatestPlus1")
+        print("1 | explainKgreatest")
+        print("2 | explainIncreasinglyLargePlus1")
+        print("3 | explainIncreasinglyLarge")
+        print("4 | skip2")
+        choice = int(input())
+        if choice == 0:
+            explainKgreatestPlus1(rollout, score, info)
+        if choice == 1:
+            explainKgreatest(rollout, score, info)
+        if choice == 2:
+            explainIncreasinglyLargePlus1(rollout, score, info)
+        if choice == 3:
+            explainIncreasinglyLarge(rollout, score, info)
+        if choice == 4:
+            skip2(rollout, score, info)
+
