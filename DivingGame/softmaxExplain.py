@@ -91,11 +91,51 @@ def smExplainGreedy(states, actions):
 
 NUM_TRIES = 4
 THRESHOLD = 0.95
-def calculateProbability(start, end, pathProbs):
+
+def pathProb(path):
     prob = 1
+    for i in range(len(path)):
+        state = path[i]
+        if not state.getLegalActions():
+            return prob
+        total = 0
+        for action in state.getLegalActions():
+            nxt = nxt[0]
+            __, __, scores, __ = getRollout(nxt, 50000)
+            score = scores[:-1]
+            total += pow(2, 0.04 * score)
+            if nxt == path[i + 1]:
+                takenScore = pow(2, 0.04 * score)
+        prob *= takenScore / total
+        
+
+def calculateProbability(start, end, pathProbs):
+    allPaths = findPaths(rR[start], rR[end], end - start)
+    allPaths = [x for x in allPaths if x != rR[start:end + 1]]
+    P = 1
     for i in range(start, end - 1):
-        prob *= pathProbs[i]
-    return 1 - pow(1 - prob, NUM_TRIES)
+        P *= pathProbs[i]
+    Q = 0
+    for path in allPaths:
+        Q += pathProb(path)
+    total = 0
+    for i in range(0, NUM_TRIES):
+        total += pow(1 - P - Q, i) * P
+    return total
+def findPaths(start, end, length):
+    def findPathsUtil(path, depth):
+        if depth == 0 and path[-1] == end:
+            return [path]
+        if depth == 0 and path[-1] != end:
+            return []
+        node = path[-1]
+        ret = []
+        for action in node.getLegalActions():
+            nxt = node.getSuccessor(action)[0]
+            found = findPathsUtil(path + [nxt], depth - 1)
+            ret += found
+        return ret  
+    return findPathsUtil([start], length)
 
 def findStates():
     f = open('data.pckl', 'rb')
