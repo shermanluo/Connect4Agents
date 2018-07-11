@@ -44,9 +44,9 @@ class diveGame:
     #(0,9) is defined at top right
     #(19,0) is defined as bottom left
     #player starts at (0,0)
-    tanks = {(20, 30, "tank"), (40, 45, "tank"), (60, 55, "tank")} #cost, size
-    defaultOxygen = 20
-    defaultTank = 20
+    tanks = {(20, 30, "tank"), (45, 45, "tank"), (60, 55, "tank")} #cost, size
+    defaultOxygen = 25
+    defaultTank = 25
     defaultTime = 85
     actions = {
         0 : (0, 0, "move"),
@@ -89,20 +89,33 @@ class diveGame:
         (None, None, "exit")
     }
 
+
+
     def __init__(self, board = None, playerLoc = (0,0), timeLeft = defaultTime, oxygenLeft = defaultOxygen, holding = [], tankSize = defaultTank, cash = 0, gameOver = False):
         self.board = board
         if not board and playerLoc:
             self.board = zeroBoard()
-            self.board[1][5] = 11
-            self.board[3][2] = 15
-            self.board[3][9] = 21
-            self.board[7][6] = 26
-            self.board[8][3] =  21
-            self.board[11][9] = 41
-            self.board[13][4] = 52
-            self.board[10][1] = 29
-            self.board[19][2] = 151
-            self.board[16][7] = 79
+            # self.board[1][5] = 11
+            # self.board[3][2] = 15
+            # self.board[3][9] = 21
+            # self.board[7][6] = 26
+            # self.board[8][3] =  21
+            # self.board[11][9] = 41
+            # self.board[13][4] = 52
+            # self.board[10][1] = 29
+            # self.board[19][2] = 151
+            # self.board[16][7] = 79
+            self.board[3][2] = 9
+            self.board[3][7] = 17
+            self.board[4][5] = 15
+            self.board[5][9] = 21
+            self.board[9][6] = 28
+            self.board[8][1] =  41
+            self.board[11][9] = 29
+            self.board[13][4] = 31
+            self.board[10][2] = 37
+            self.board[19][7] = 91
+            self.board[16][3] = 51
         self.playerLoc = playerLoc
         self.timeLeft = timeLeft
         self.tankSize = tankSize

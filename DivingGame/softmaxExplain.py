@@ -12,7 +12,7 @@ import pdb
 f = open('store.pckl', 'rb')
 rR, rS, hR, hS, rA, hA = pickle.load(f)
 
-def smExplain(states, actions):
+def smExplain(states, actions): #Qvalues
     data = []
     for i in range(len(states) - 1):
         print(i)
@@ -35,7 +35,7 @@ def smExplain(states, actions):
     f.close()
     print(data)
 
-def smExplainGreedy(states, actions):
+def smExplainGreedy(states, actions): #K=3 evaluations of actions
     data = []
     kagent = MaxAgent(depth=3)
     value_fn = lambda s: kagent.value(s)[0]
@@ -51,7 +51,7 @@ def smExplainGreedy(states, actions):
                 nxt = state.getSuccessor(action)
                 values.append(value_fn(nxt[0]) + nxt[1])
         data.append((idxTaken, values))
-    f = open('data.pckl', 'wb')
+    f = open('kdata.pckl', 'wb')
     pickle.dump(data, f)
     f.close()
     #print(data)
@@ -85,13 +85,21 @@ def smExplainGreedy(states, actions):
 
 
 #   print(results)
-#smExplain(rR, rA)
+smExplainGreedy(rR, rA)
 
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 NUM_TRIES = 4
 THRESHOLD = 0.95
 
+kagent = MaxAgent(depth=3)
+value_fn = lambda s: kagent.value(s)[0]
+#THIS FUNCTION RETURNS THE PROBABILITY OF TAKING A PATH. CURRENTLY A HYBRID BETWEEN K3 and Q
+#THIS FUNCTION IS USED TO CALCULATE THE PROBABILITY OF ONE OF THE ALTERNATE PATHS
 def pathProb(path):
     prob = 1
     for i in range(len(path)):
@@ -99,19 +107,23 @@ def pathProb(path):
         if not state.getLegalActions():
             return prob
         total = 0
+        ktotal = 0
         for action in state.getLegalActions():
-            nxt = nxt[0]
-            __, __, scores, __ = getRollout(nxt, 50000)
+            nxt = state.getSuccessor(action)
+            __, __, scores, __ = getRollout(nxt[0], 50000)
             score = scores[:-1]
-            total += pow(2, 0.04 * score)
+            kscore = value_fn(nxt[0]) + nxt[1]
+            total += pow(math.e, 0.04 * score)
+            ktotal += pow(math.e, 0.1 * kscore)
             if nxt == path[i + 1]:
-                takenScore = pow(2, 0.04 * score)
-        prob *= takenScore / total
+                takenScore = pow(math.e, 0.04 * score)
+                ktakenScore = pow(math.e, 0.1 * kscore)
+        prob *= 0.33 * takenScore / total + 0.67 * ktakenScore / ktotal 
         
-
-def calculateProbability(start, end, pathProbs):
+#calculate the probability of inferring between start and end
+def calculateProbability(start, end, pathProbs): #pathprobs is an array of the probabilities of each action. start and end are indices
     allPaths = findPaths(rR[start], rR[end], end - start)
-    allPaths = [x for x in allPaths if x != rR[start:end + 1]]
+    allPaths = [x for x in allPaths if x != rR[start:end + 1]] #trim off the actual path explored
     P = 1
     for i in range(start, end - 1):
         P *= pathProbs[i]
@@ -122,6 +134,8 @@ def calculateProbability(start, end, pathProbs):
     for i in range(0, NUM_TRIES):
         total += pow(1 - P - Q, i) * P
     return total
+
+#Finds all paths from start to end with a certain length
 def findPaths(start, end, length):
     def findPathsUtil(path, depth):
         if depth == 0 and path[-1] == end:
@@ -137,14 +151,26 @@ def findPaths(start, end, length):
         return ret  
     return findPathsUtil([start], length)
 
+
+#Master function that finds the indices of the states to be shown.
 def findStates():
     f = open('data.pckl', 'rb')
     data = pickle.load(f)
-    results = []
+    f = open('kdata.pckl', 'rb')
+    kdata = pickle.load(f)
+    results = [] #results is a list of the probabilities of each action in the rollout
     for idx, vector in data:
-        value = pow(2, 0.04 * vector[idx])
-        results.append(value / sum([pow(2, 0.04 * x) for x in vector]))
+        qvalue = pow(math.e, 0.04 * vector[idx])
+        results.append(0.33 * (qvalue / sum([pow(math.e, 0.04 * x) for x in vector])))
+        
+    kresults = []
+    for idx, vector in kdata:
+        kvalue = pow(math.e, 0.1 * vector[idx])
+        kresults.append(0.67 * (kvalue / sum([pow(math.e, 0.1 * x) for x in vector])))
+    for i in range(len(results)):
+        results[i] += kresults[i]
     idx = [x for x in range(len(data) + 1)]
+
     print("action probabilities", [format(i, ".2f") for i in results])
     start = 0
     end = 1
