@@ -162,7 +162,7 @@ def findStates():
     for idx, vector in data:
         qvalue = pow(math.e, 0.04 * vector[idx])
         results.append(0.33 * (qvalue / sum([pow(math.e, 0.04 * x) for x in vector])))
-        
+
     kresults = []
     for idx, vector in kdata:
         kvalue = pow(math.e, 0.1 * vector[idx])
