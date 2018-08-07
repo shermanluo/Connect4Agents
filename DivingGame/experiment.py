@@ -2,6 +2,7 @@ from tkinter import Tk, Label, Button, Entry, IntVar, END, W, E, PhotoImage
 import tkinter
 from divegame import diveGame
 import time
+import pickle
 
 def manDist(A, B):
     return abs(A[0] - B[0]) + abs(A[1] - B[1])
@@ -15,24 +16,35 @@ class Experiment:
         self.master = master
         master.title("Calculator")
 
+        self.topLabel = Label(master, text = "", font = ("Helvetica", 40))
+        self.topLabel.grid(row=0, column = 25)
+
         self.lbl = Label(master, text="Click on a valid location to prepare your next move. If a tank is available and you are surfaced then you can purchase it.", font=("Helvetica", 25))
         self.lbl.grid(row = 5, column=25)
 
-        self.playGame()
+        
+        f = open('store.pckl', 'rb')
+        rR, rS, hR, hS, rA, hA = pickle.load(f)
+        self.showRollout(rR)
 
 
 
-    def displayBoard(self):
-        self.lbl.config( text="Click on a valid location to prepare your next move. If a tank is available and you are surfaced then you can purchase it.")
+    def displayBoard(self, playing = True):
+        if playing:
+            self.lbl.config( text="Click on a valid location to prepare your next move. If a tank is available and you are surfaced then you can purchase it.")
+
+
+
+
         try:
             self.exit.destroy()
         except:
             pass
         tanks = [tank for tank in self.state.tanks]
 
-        self.cash = Label(self.master, text = "Cash: " + str(self.state.cash), font = ("Helvetica", 18))
+        self.cash = Label(self.master, text = "     Cash: " + str(self.state.cash) + "     ", font = ("Helvetica", 18))
         self.cash.grid(row = 15, column = 25)
-        self.time = Label(self.master, text = "Time: " + str(self.state.timeLeft), font = ("Helvetica", 18))
+        self.time = Label(self.master, text = "    Time: " + str(self.state.timeLeft) + "     ", font = ("Helvetica", 18))
         self.time.grid(row = 16, column = 25)
         self.oxygen = Label(self.master, text = "        Oxygen Left: " + str(self.state.oxygenLeft) + "       ", font = ("Helvetica", 18))
         self.oxygen.grid(row = 17, column = 25)
@@ -56,7 +68,7 @@ class Experiment:
             c += 1
 
 
-        if self.state.playerLoc == (0,0) or self.state.playerLoc == (0,5) or self.state.playerLoc == (0,9):
+        if self.state.playerLoc == (0,0) or self.state.playerLoc == (0,5) or self.state.playerLoc == (0,9) and playing:
             def exit():
                 self.move = (None, None, 'exit')
                 self.var.set(1) 
@@ -67,16 +79,20 @@ class Experiment:
 
         for i in range(0, 20):
             for j in range(0, 10):
+                color = "white"
                 if self.state.board[i][j]:
+                    color = "Gray"
                     text = str(self.state.board[i][j])
                 elif (i, j) == (0,0) or (i, j) == (0,5) or (i, j) == (0,9):
                     text = "E"
+                    color = "Green"
                 else:
                     text = ""
 
 
                 if self.state.playerLoc == (i, j):
                     text = "P"
+                    color = "Yellow"
                 b = Button(self.master)
                 b.grid(row=i, column = j)
                 b.row = i
@@ -106,9 +122,10 @@ class Experiment:
 
                     return do
                 
-                b.config(text = text, width="4",height="2",font=("Helvetica", 12), command = click((i, j, 'move')))
+                b.config(text = text, width="4",height="2",font=("Helvetica", 12), command = click((i, j, 'move')), background = color)
 
     def playGame(self):
+        self.topLabel.config(text="YOU ARE PLAYING THE GAME")
         self.displayBoard()
         self.var = tkinter.IntVar()
         self.move = None
@@ -119,6 +136,27 @@ class Experiment:
             self.move = None
             self.var.set(0)
         self.lbl.config(text="Game Over, Your Score: " + str(self.state.cash))
+        self.topLabel.config(text="")
+
+    def showRollout(self, states):
+
+        self.topLabel.config(text="YOU ARE OBSERVING A SERIES OF STATES IN A PLAN")
+        self.nextState = tkinter.IntVar()
+        def nextState():
+            self.nextState.set(1)
+        i = 0
+        for state in states:
+            self.lbl.config(text = "STATE NUMBER: " + str(i))
+            self.state = state
+            self.displayBoard(playing = False)
+            self.nextStateButton = Button(self.master, text = "Next State", font = ("Helvetica", 18), command = nextState)
+            self.nextStateButton.grid(row=6, column = 25)
+            root.wait_variable(self.nextState)
+            self.nextState.set(0)
+            i += 1
+        self.nextStateButton.destroy()
+        self.topLabel.config(text="")
+
 
 
 root = Tk()
