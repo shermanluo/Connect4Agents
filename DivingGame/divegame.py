@@ -44,10 +44,31 @@ class diveGame:
     #(0,9) is defined at top right
     #(19,0) is defined as bottom left
     #player starts at (0,0)
-    tanks = {(20, 30, "tank"), (45, 45, "tank"), (60, 55, "tank")} #cost, size
-    defaultOxygen = 25
-    defaultTank = 25
-    defaultTime = 85
+    # tanks = {(20, 30, "tank"), (45, 45, "tank"), (60, 55, "tank")} #cost, size
+    # tanks = {(20, 30, "tank"), (45, 45, "tank"), (60, 55, "tank")} #cost, size
+    # tanks = {(20, 30, "tank"), (50, 45, "tank"), (70, 55, "tank")} #cost, size
+    # tanks = {(25, 30, "tank"), (40, 45, "tank"), (60, 50, "tank")} #cost, size
+    tanks = {(25, 30, "tank"), (45, 45, "tank"), (60, 55, "tank")} #cost, size
+
+    # defaultOxygen = 25
+    # defaultTank = 25
+    # defaultTime = 85
+
+    # defaultOxygen = 25
+    # defaultTank = 25
+    # defaultTime = 80
+
+    # defaultOxygen = 17
+    # defaultTank = 17
+    # defaultTime = 90
+
+    # defaultOxygen = 20
+    # defaultTank = 20
+    # defaultTime = 75
+
+    defaultOxygen = 20
+    defaultTank = 20
+    defaultTime = 80
     actions = {
         0 : (0, 0, "move"),
         1 : (0, 5, "move"),
@@ -95,6 +116,8 @@ class diveGame:
         self.board = board
         if not board and playerLoc:
             self.board = zeroBoard()
+
+            # self.board = zeroBoard()
             # self.board[1][5] = 11
             # self.board[3][2] = 15
             # self.board[3][9] = 21
@@ -105,17 +128,53 @@ class diveGame:
             # self.board[10][1] = 29
             # self.board[19][2] = 151
             # self.board[16][7] = 79
-            self.board[3][2] = 9
-            self.board[3][7] = 17
-            self.board[4][5] = 15
-            self.board[5][9] = 21
-            self.board[9][6] = 28
-            self.board[8][1] =  41
+
+            # self.board[3][2] = 9
+            # self.board[3][7] = 17
+            # self.board[4][5] = 15
+            # self.board[5][9] = 21
+            # self.board[9][6] = 28
+            # self.board[8][1] =  41
+            # self.board[11][9] = 29
+            # self.board[13][4] = 31
+            # self.board[10][2] = 37
+            # self.board[19][7] = 91
+            # self.board[16][3] = 51
+
+            # self.board[4][5] = 5
+            # self.board[3][2] = 17
+            # self.board[5][9] = 11
+            # self.board[1][9] = 21
+            # self.board[5][7] = 24
+            # self.board[7][0] =  32
+            # self.board[11][9] = 29
+            # self.board[14][7] = 42
+            # self.board[10][2] = 37
+            # self.board[19][2] = 85
+            # self.board[17][3] = 70
+
+            # self.board[4][5] = 15
+            # self.board[3][2] = 17
+            # self.board[5][9] = 24
+            # self.board[7][0] =  34
+            # self.board[11][9] = 29
+            # self.board[14][7] = 42
+            # self.board[10][2] = 51
+            # self.board[19][2] = 101
+            # self.board[17][3] = 70
+
+            self.board[3][5] = 9
+            self.board[8][2] = 17
+            self.board[5][9] = 24
+            self.board[7][0] =  34
             self.board[11][9] = 29
-            self.board[13][4] = 31
-            self.board[10][2] = 37
-            self.board[19][7] = 91
-            self.board[16][3] = 51
+            self.board[14][7] = 42
+            self.board[10][2] = 29
+            self.board[19][2] = 90
+            self.board[17][3] = 42
+            self.board[19][9] = 39
+
+
         self.playerLoc = playerLoc
         self.timeLeft = timeLeft
         self.tankSize = tankSize

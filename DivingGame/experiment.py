@@ -11,6 +11,7 @@ def manDist(A, B):
 class Experiment:
 
     def __init__(self, master):
+        self.filename = str(input())
         master.minsize(2000,1000)
         self.state = diveGame()
         self.master = master
@@ -22,11 +23,14 @@ class Experiment:
         self.lbl = Label(master, text="Click on a valid location to prepare your next move. If a tank is available and you are surfaced then you can purchase it.", font=("Helvetica", 25))
         self.lbl.grid(row = 5, column=25)
 
-        
+        self.var = tkinter.IntVar()
+        self.showing = False
+
+
         f = open('store.pckl', 'rb')
         rR, rS, hR, hS, rA, hA = pickle.load(f)
-        self.showRollout(rR)
-
+        #self.showRollout(rR)
+        self.playGame()
 
 
     def displayBoard(self, playing = True):
@@ -54,12 +58,13 @@ class Experiment:
                 def do():
                     self.var.set(1)
                     self.move = action
-                if  (self.state.playerLoc == (0,0) or self.state.playerLoc == (0,5) or self.state.playerLoc == (0,9)) and self.state.cash >= action[1]:
-                    self.lbl.config(text = "Tank | Cost: " + str(action[0]) + " | Size: " + str(action[1]))
-                    self.next = Button(self.master, text="Execute Move", font = ("Helvetica", 18), command = do)
-                    self.next.grid(row = 6, column=25)
-                else:
-                    self.lbl.config(text = "Cannot Buy Tank")
+                if not self.showing:    
+                    if  (self.state.playerLoc == (0,0) or self.state.playerLoc == (0,5) or self.state.playerLoc == (0,9)) and self.state.cash >= action[1]:
+                        self.lbl.config(text = "Tank | Cost: " + str(action[0]) + " | Size: " + str(action[1]))
+                        self.next = Button(self.master, text="Execute Move", font = ("Helvetica", 18), command = do)
+                        self.next.grid(row = 6, column=25)
+                    else:
+                        self.lbl.config(text = "Cannot Buy Tank")
             return executeMove
         c = 0
         for tank in tanks:
@@ -84,7 +89,7 @@ class Experiment:
                     color = "Gray"
                     text = str(self.state.board[i][j])
                 elif (i, j) == (0,0) or (i, j) == (0,5) or (i, j) == (0,9):
-                    text = "E"
+                    text = "EXIT"
                     color = "Green"
                 else:
                     text = ""
@@ -108,16 +113,17 @@ class Experiment:
                                 self.var.set(1)
                                 self.move = action
                             return do 
-                        if (i, j) == (0, 0) or (i, j) == (0, 5) or (i, j) == (0, 9):
-                            valid = True
-                            text = "Surface Location: " + str((i, j)) + "| distance is " + str(manDist((i, j), self.state.playerLoc))
-                        if self.state.board[i][j]:
-                            valid = True
-                            text = "Pick up " + str(self.state.board[i][j])+ " at location " + str((i, j)) + " | distance is " + str(manDist((i, j), self.state.playerLoc))
-                        if valid:
-                            self.lbl.config(text = text)
-                            self.next = Button(self.master, text="Execute Move", font = ("Helvetica", 18), command = executeMove(action))
-                            self.next.grid(row = 6, column=25)
+                        if not self.showing:
+                            if (i, j) == (0, 0) or (i, j) == (0, 5) or (i, j) == (0, 9):
+                                valid = True
+                                text = "Surface Location: " + str((i, j)) + "| distance is " + str(manDist((i, j), self.state.playerLoc))
+                            if self.state.board[i][j]:
+                                valid = True
+                                text = "Pick up " + str(self.state.board[i][j])+ " at location " + str((i, j)) + " | distance is " + str(manDist((i, j), self.state.playerLoc))
+                            if valid:
+                                self.lbl.config(text = text)
+                                self.next = Button(self.master, text="Execute Move", font = ("Helvetica", 18), command = executeMove(action))
+                                self.next.grid(row = 6, column=25)
 
 
                     return do
@@ -125,21 +131,25 @@ class Experiment:
                 b.config(text = text, width="4",height="2",font=("Helvetica", 12), command = click((i, j, 'move')), background = color)
 
     def playGame(self):
+        self.showing = False
         self.topLabel.config(text="YOU ARE PLAYING THE GAME")
+        stateActions = []
         self.displayBoard()
-        self.var = tkinter.IntVar()
         self.move = None
         while (not self.state.isOver()):
             action = self.displayBoard()
             root.wait_variable(self.var)
+            stateActions.append((self.state, self.move))
             self.state = self.state.getSuccessor(self.move)[0]
             self.move = None
             self.var.set(0)
+        f = open(self.filename, "wb")
         self.lbl.config(text="Game Over, Your Score: " + str(self.state.cash))
         self.topLabel.config(text="")
+        pickle.dump((self.state.cash, stateActions), f)
 
     def showRollout(self, states):
-
+        self.showing = True
         self.topLabel.config(text="YOU ARE OBSERVING A SERIES OF STATES IN A PLAN")
         self.nextState = tkinter.IntVar()
         def nextState():
