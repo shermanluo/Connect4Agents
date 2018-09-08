@@ -6,11 +6,15 @@ import pickle
 import math
 from rolloutvisual import visualize
 from fatal_flaw import printActions
+from fatal_flaw import getActions
 from Agent import MaxAgent
 import pdb
 
-f = open('store.pckl', 'rb')
-rR, rS, hR, hS, rA, hA = pickle.load(f)
+if __name__ == "__main__":
+    f = open('store.pckl', 'rb')
+    rR, rS, hR, hS, rA, hA = pickle.load(f)
+
+num_iters = 40000
 
 def smExplain(states, actions): #Qvalues
     data = []
@@ -26,7 +30,7 @@ def smExplain(states, actions): #Qvalues
             print(action)
             if not (action[2] == "exit" and takenAction == "exit"):
                 nxt = state.getSuccessor(action)[0]
-                __, __, scores, __ = getRollout(nxt, 50000)
+                __, __, scores, __ = getRollout(nxt, num_iters)
                 value = scores[-1]
                 values.append(value)
         data.append((idxTaken, values))
@@ -34,6 +38,8 @@ def smExplain(states, actions): #Qvalues
     pickle.dump(data, f)
     f.close()
     print(data)
+    return data
+
 
 def smExplainGreedy(states, actions): #K=3 evaluations of actions
     data = []
@@ -54,6 +60,7 @@ def smExplainGreedy(states, actions): #K=3 evaluations of actions
     f = open('kdata.pckl', 'wb')
     pickle.dump(data, f)
     f.close()
+    return data
     #print(data)
 
 # def smExplain(states, actions):
@@ -85,7 +92,9 @@ def smExplainGreedy(states, actions): #K=3 evaluations of actions
 
 
 #   print(results)
-smExplainGreedy(rR, rA)
+
+#------------------------------------------------------------------------------
+#ExplainGreedy(rR, rA)
 
 
 
@@ -94,7 +103,8 @@ smExplainGreedy(rR, rA)
 
 
 NUM_TRIES = 4
-THRESHOLD = 0.95
+THRESHOLD = 0.97
+
 
 kagent = MaxAgent(depth=3)
 value_fn = lambda s: kagent.value(s)[0]
@@ -110,7 +120,7 @@ def pathProb(path):
         ktotal = 0
         for action in state.getLegalActions():
             nxt = state.getSuccessor(action)
-            __, __, scores, __ = getRollout(nxt[0], 50000)
+            __, __, scores, __ = getRollout(nxt[0], num_iters)
             score = scores[:-1]
             kscore = value_fn(nxt[0]) + nxt[1]
             total += pow(math.e, 0.04 * score)
@@ -121,7 +131,7 @@ def pathProb(path):
         prob *= 0.33 * takenScore / total + 0.67 * ktakenScore / ktotal 
         
 #calculate the probability of inferring between start and end
-def calculateProbability(start, end, pathProbs): #pathprobs is an array of the probabilities of each action. start and end are indices
+def calculateProbability(start, end, pathProbs, rR): #pathprobs is an array of the probabilities of each action. start and end are indices
     allPaths = findPaths(rR[start], rR[end], end - start)
     allPaths = [x for x in allPaths if x != rR[start:end + 1]] #trim off the actual path explored
     P = 1
@@ -177,21 +187,71 @@ def findStates():
     idxs = [0]
     #pdb.set_trace()
     while end <= len(results):
-        prob = calculateProbability(start, end, results)
+        prob = calculateProbability(start, end, results, rR)
         while prob >= THRESHOLD:
             if end == len(results):
                 idxs.append(end)
                 return idxs
             end += 1
-            prob = calculateProbability(start, end, results)
+            prob = calculateProbability(start, end, results, rR)
         idxs.append(end - 1)
         start = end - 1
     idxs.append(end)
     return idxs
 
 
-idxs = findStates()
-print("State Indices", idxs)
-visualize([rR[i] for i in idxs], printActions(rR[0], rA))
+def dataCalc(states, actions): #assumes that current actions are optimal already 
+    data = []
+    for i in range(len(states) - 1):
+        state = states[i]
+        takenAction = actions[i]
+        possibleActions = state.getLegalActions()
+        idxTaken = [x for x, y in enumerate(possibleActions) if y == takenAction][0]
+        scores, bestStates, bestIdx, stateActions, BestRollout, bestActions = getActions(state, 1, num_iters, allData = True)
+        #data.append((idxTaken, bestIdx, scores, BestRollout, bestActions))
+        data.append((idxTaken, [score[-1] for score in scores]))
+    return data
+
+def findStates2(rR, rA, data = None):
+    data = dataCalc(rR, rA)
+    kdata = smExplainGreedy(rR, rA)
+    results = [] #results is a list of the probabilities of each action in the rollout
+    for idx, vector in data:
+        print(vector[idx])
+        qvalue = pow(math.e, 0.04 * vector[idx])
+        results.append(0.33 * (qvalue / sum([pow(math.e, 0.04 * x) for x in vector])))
+
+    kresults = []
+    for idx, vector in kdata:
+        kvalue = pow(math.e, 0.1 * vector[idx])
+        kresults.append(0.67 * (kvalue / sum([pow(math.e, 0.1 * x) for x in vector])))
+    for i in range(len(results)):
+        results[i] += kresults[i]
+    idx = [x for x in range(len(data) + 1)]
+
+    print("action probabilities", [format(i, ".2f") for i in results])
+    start = 0
+    end = 1
+    idxs = [0]
+    #pdb.set_trace()
+    while end <= len(results):
+        prob = calculateProbability(start, end, results, rR)
+        while prob >= THRESHOLD:
+            if end == len(results):
+                idxs.append(end)
+                print(idxs)
+                return idxs
+            end += 1
+            prob = calculateProbability(start, end, results, rR)
+        idxs.append(end - 1)
+        start = end - 1
+    idxs.append(end)
+    print(idxs)
+    return idxs
+
+if __name__ == "__main__":
+    idxs = findStates()
+    print("State Indices", idxs)
+    visualize([rR[i] for i in idxs], printActions(rR[0], rA))
     
 
