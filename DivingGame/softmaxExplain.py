@@ -213,7 +213,9 @@ def dataCalc(states, actions): #assumes that current actions are optimal already
     return data
 
 def findStates2(rR, rA, data = None):
+    print("X")
     data = dataCalc(rR, rA)
+    print("X")
     kdata = smExplainGreedy(rR, rA)
     results = [] #results is a list of the probabilities of each action in the rollout
     for idx, vector in data:

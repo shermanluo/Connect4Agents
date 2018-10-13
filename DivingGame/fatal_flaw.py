@@ -84,7 +84,7 @@ def getActions(state, depth, num_iters, allData = False):
     bestScore = values[bestIdx]
     assert bestScore == max(values)
     bestActions = [actions[bestIdx]] + results[bestIdx][1]
-    NA = [(results[i][-1],actions[i]) for i in range(len(results))]
+    NA = [(results[i][-1],actions[i]) for i in range(len(results))] #NA is state u ended up at, and what action you took to get there
     if allData:
         return [[state.cash] + scores for _,_,scores,_ in results], bestStates, bestIdx, NA, [state] + bestStates[bestIdx], bestActions
     return bestScore, bestActions, NA, [state] + bestStates[bestIdx]

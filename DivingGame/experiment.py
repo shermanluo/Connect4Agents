@@ -1,6 +1,6 @@
 from tkinter import Tk, Label, Button, Entry, IntVar, END, W, E, PhotoImage
 import tkinter
-from divegame import diveGame
+from divegame import diveGame, zeroBoard
 import time
 import pickle
 from fatal_flaw import fatalFlaw
@@ -10,12 +10,37 @@ from softmaxExplain import findStates2
 def manDist(A, B):
     return abs(A[0] - B[0]) + abs(A[1] - B[1])
 
+board1 = zeroBoard()
+board1[1][9] = 11
+board1[3][2] = 15
+board1[3][9] = 12
+board1[5][3] = 27
+board1[7][8] =  24
+board1[11][4] = 31
+board1[13][4] = 52
+board1[8][1] = 29
+board1[10][2] = 131
+board1[19][7] = 89
+
+practiceBoard1 = diveGame(
+    board = None, 
+    playerLoc = (0,0), 
+    timeLeft = 90, 
+    oxygenLeft = 20, 
+    holding = [], 
+    tankSize = 20, 
+    cash = 0, 
+    gameOver = False, 
+    tanks = {(20, 30, "tank"), (55, 55, "tank")})
+
+
+
 
 class Experiment:
 
     def __init__(self, master):
         print("Ask")
-        self.filename = str(input())
+        self.filename = "playdata/" + str(input())
         master.maxsize(1600, 900)
         master.minsize(1600, 900)
         self.state = diveGame()
@@ -35,6 +60,8 @@ class Experiment:
         f = open('store.pckl', 'rb')
         rR, rS, hR, hS, rA, hA = pickle.load(f)
         #self.showRollout(rR)
+
+
         #self.experiment()
         self.playGame()
 
@@ -168,6 +195,23 @@ class Experiment:
         pickle.dump((self.state.cash, stateActions), f)
         return actions, states
 
+    def playStates(self, states):
+        self.showing = False
+        self.topLabel.config(text="Choose the next move in the state")
+        stateActions = []
+        for state in states:
+            self.state = state
+            self.displayBoard()
+            root.wait_variable(self.var)
+            if self.move not in self.state.getLegalActions():
+                self.var.set(0)
+                self.move = None
+                continue
+            stateActions.append((self.state, self.move))
+            self.move = None
+            self.var.set(0)
+        return stateActions
+
     def showRollout(self, states):
         self.showing = True
         self.topLabel.config(text="YOU ARE OBSERVING A SERIES OF STATES IN A PLAN")
@@ -227,10 +271,15 @@ class Experiment:
         self.topLabel.config(text="")
 
     def experiment(self):
+        self.state = practiceBoard1
         startState = self.state
         actions, states = self.playGame()
+
+
         rR, rS, hR, hS, rA, hA, flawIndex = fatalFlaw(startState, actions)
+        print("AA")
         idxs = findStates2(rR, rA)
+        print("BB")
         def click():
             self.windowClick.set(1)
         self.windowClick = tkinter.IntVar()
@@ -249,11 +298,18 @@ class Experiment:
         self.topLabel.config(fg = 'black')
         self.windowClick.set(0)
 
-
-
         self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in idxs])
 
-        #print(rA)
+
+
+
+        stateActions = []
+        f = open("testStates", "rb")
+        states = pickle.load(f)        
+        stateActions = self.playStates(states)
+        f = open(self.filename + "D", "wb")
+        pickle.dump(stateActions, f)
+
 
 
 

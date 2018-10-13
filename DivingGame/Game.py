@@ -1,6 +1,10 @@
 from divegame import diveGame
 import pickle
 
+
+
+
+
 def manDist(A, B):
     return abs(A[0] - B[0]) + abs(A[1] - B[1])
 class Game: 
