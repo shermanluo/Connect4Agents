@@ -305,10 +305,10 @@ class Experiment:
 
         stateActions = []
         f = open("testStates", "rb")
-        states = pickle.load(f)        
-        stateActions = self.playStates(states)
+        tStates = pickle.load(f)        
+        stateActions = self.playStates(tStates)
         f = open(self.filename + "D", "wb")
-        pickle.dump(stateActions, f)
+        pickle.dump((states, actions, stateActions), f)
 
 
 
