@@ -65,7 +65,7 @@ def printActions(gameState, actions):
         else:
             curr += "|" + str(gameState.board[action[0]][action[1]])
 
-def getActions(state, depth, num_iters, allData = False):
+def getActions(state, depth, num_iters, allData = False, allRollouts = False):
     if state.isOver():
         s = m2.State()
         s.gs = state
@@ -85,6 +85,8 @@ def getActions(state, depth, num_iters, allData = False):
     assert bestScore == max(values)
     bestActions = [actions[bestIdx]] + results[bestIdx][1]
     NA = [(results[i][-1],actions[i]) for i in range(len(results))] #NA is state u ended up at, and what action you took to get there
+    if allRollouts:
+        return [[actions[i]] + results[i][1] for i in range(len(actions))], values
     if allData:
         return [[state.cash] + scores for _,_,scores,_ in results], bestStates, bestIdx, NA, [state] + bestStates[bestIdx], bestActions
     return bestScore, bestActions, NA, [state] + bestStates[bestIdx]

@@ -23,7 +23,7 @@ board1[10][2] = 131
 board1[19][7] = 89
 
 practiceBoard1 = diveGame(
-    board = None, 
+    board = board1, 
     playerLoc = (0,0), 
     timeLeft = 90, 
     oxygenLeft = 20, 
@@ -62,6 +62,23 @@ class Experiment:
         #self.showRollout(rR)
 
 
+        g2 = open("group2States", 'rb')
+        g2 = pickle.load(g2)
+        states = []
+        for d in g2:
+            s = diveGame(
+                board = d['board'], 
+                playerLoc = d['playerLoc'], 
+                timeLeft = d['timeLeft'], 
+                oxygenLeft =d['oxygenLeft'], 
+                holding = d['holding'], 
+                tankSize = d['tankSize'], 
+                cash = d['cash'], 
+                gameOver = d['gameOver'], 
+                tanks = d['tanks']
+                )
+            states.append(s)
+        #self.playStates(states)
         #self.experiment()
         self.playGame()
 
@@ -104,10 +121,19 @@ class Experiment:
                         self.lbl.config(text = "Cannot Buy Tank")
             return executeMove
         c = 0
+        self.tanks = []
         for tank in tanks:
-            t = Button(self.master, text = "Tank | Cost: " + str(tank[0]) + " | Size: " + str(tank[1]), font = ("Helvetica", 15), command = clickTank(tank))
-            t.grid(row = 10 + c, column = 15)
-            c += 1
+            if tank in self.state.getLegalActions():
+                t = Button(self.master, text = "Tank | Cost: " + str(tank[0]) + " | Size: " + str(tank[1]), font = ("Helvetica", 15), command = clickTank(tank))
+                t.grid(row = 10 + c, column = 15)
+                self.tanks.append(t)
+                c += 1
+            else:
+                t = Button(self.master, text = "Tank | Cost: " + str(tank[0]) + " | Size: " + str(tank[1]), font = ("Helvetica", 15), command = clickTank(tank))
+                t.config(state = "disabled")
+                t.grid(row = 10 + c, column = 15)
+                self.tanks.append(t)
+                c += 1
 
 
         if self.state.playerLoc == (0,0) or self.state.playerLoc == (0,9) and playing:
@@ -121,7 +147,11 @@ class Experiment:
 
         for i in range(0, 20):
             for j in range(0, 10):
+                fg = "black"
                 color = "white"
+                font = ("Helvetica", 11)
+                if i > 0:
+                    color = "navy"
                 if self.state.board[i][j]:
                     color = "Light Gray"
                     text = str(self.state.board[i][j])
@@ -134,7 +164,10 @@ class Experiment:
 
                 if self.state.playerLoc == (i, j):
                     text = "P"
-                    color = "Yellow"
+                    fg = "brown4"
+                    font = ("Helvetica", 10, "bold")
+                if self.state.playerLoc == (i, j) and self.state.playerLoc[0] != 0: 
+                    color = "white"
                 b = Button(self.master)
                 b.grid(row=i, column = j)
                 b.row = i
@@ -165,7 +198,7 @@ class Experiment:
 
                     return do
                 
-                b.config(text = text, width="3",height="2",font=("Helvetica", 10), command = click((i, j, "move")), background = color)
+                b.config(highlightthickness=0, text = text, width="3",height="2",font= font, fg = fg, command = click((i, j, "move")), background = color)
 
     def playGame(self):
         self.showing = False
@@ -180,9 +213,8 @@ class Experiment:
             self.displayBoard()
             root.wait_variable(self.var)
             if self.move not in self.state.getLegalActions():
-                self.var.set(0)
-                self.move = None
-                continue
+                print(self.move, self.state.getLegalActions())
+                raise Exception
             stateActions.append((self.state, self.move))
             actions.append(self.move)
             self.state = self.state.getSuccessor(self.move)[0]
@@ -204,12 +236,14 @@ class Experiment:
             self.displayBoard()
             root.wait_variable(self.var)
             if self.move not in self.state.getLegalActions():
-                self.var.set(0)
-                self.move = None
-                continue
+
+                raise Exception 
             stateActions.append((self.state, self.move))
             self.move = None
             self.var.set(0)
+            for tank in self.tanks:
+                print("GI")
+                tank.destroy()
         return stateActions
 
     def showRollout(self, states):
@@ -267,14 +301,15 @@ class Experiment:
             else:
                 i += 1
             self.nextState.set(0)
-        self.nextStateButton.destroy()
+        self.nextStateButton.config(state = 'disabled')
+        self.prevStateButton.config(state = 'disabled')
         self.topLabel.config(text="")
 
     def experiment(self):
         self.state = practiceBoard1
         startState = self.state
         actions, states = self.playGame()
-
+        self.next.grid_forget()
 
         rR, rS, hR, hS, rA, hA, flawIndex = fatalFlaw(startState, actions)
         print("AA")
@@ -290,18 +325,23 @@ class Experiment:
         self.topLabel.config(fg = 'black')
 
 
+        self.topLabelButton.config(state = 'disabled')
+
+
+
         self.showRolloutWithBack([(x, y) for x, y in enumerate(states) if x < flawIndex + 2], ff = True)
 
+        self.topLabelButton.config(state = 'normal')
         self.windowClick.set(0)
         self.topLabel.config(text = "This is what you should have done instead!", fg = 'red')
         root.wait_variable(self.windowClick)
+
+        self.topLabelButton.grid_forget()
+
         self.topLabel.config(fg = 'black')
         self.windowClick.set(0)
 
         self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in idxs])
-
-
-
 
         stateActions = []
         f = open("testStates", "rb")

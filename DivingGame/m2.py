@@ -208,7 +208,7 @@ def getRollout(diveGame, num_sims):
         rollout.append(action)
         states.append(node.state.gs)
         scores.append(node.state.gs.cash)
-        num_sims = 5000
+        num_sims = 20000
     return states, rollout, scores, startNode
 
 if __name__=="__main__":

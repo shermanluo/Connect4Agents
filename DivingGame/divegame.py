@@ -1,6 +1,7 @@
 def manDist(A, B):
+    if B[0] == None or B[1] == None:
+        print(A, B)
     return abs(A[0] - B[0]) + abs(A[1] - B[1])
-
 def boardCopy(board):
     copy = []
     for i in board:
@@ -47,19 +48,19 @@ class diveGame:
 
 
     #tanks = {(20, 30, "tank"), (45, 45, "tank"), (60, 55, "tank")} #cost, size
-    #tanks = {(20, 30, "tank"), (45, 45, "tank"), (60, 55, "tank")} #cost, size
+    tanks = {(20, 30, "tank"), (45, 45, "tank"), (60, 55, "tank")} #cost, size
     #tanks = {(20, 30, "tank"), (50, 45, "tank"), (70, 55, "tank")} #cost, size
     #tanks = {(25, 30, "tank"), (40, 45, "tank"), (60, 50, "tank")} #cost, size
-    tanks = {(25, 30, "tank"), (45, 45, "tank"), (60, 55, "tank")} #cost, size
+    #tanks = {(25, 30, "tank"), (45, 45, "tank"), (60, 55, "tank")} #cost, size
 
 
     # defaultOxygen = 25
     # defaultTank = 25
     # defaultTime = 85
 
-    # defaultOxygen = 25
-    # defaultTank = 25
-    # defaultTime = 80
+    defaultOxygen = 25
+    defaultTank = 25
+    defaultTime = 80
 
     # defaultOxygen = 17
     # defaultTank = 17
@@ -69,9 +70,9 @@ class diveGame:
     # defaultTank = 20
     # defaultTime = 75
 
-    defaultOxygen = 20
-    defaultTank = 20
-    defaultTime = 80
+    # defaultOxygen = 20
+    # defaultTank = 20
+    # defaultTime = 80
 
 
 
@@ -93,17 +94,17 @@ class diveGame:
             # self.board[19][2] = 151
             # self.board[16][7] = 79
 
-            # self.board[3][2] = 9
-            # self.board[3][7] = 17
-            # self.board[4][5] = 15
-            # self.board[5][9] = 21
-            # self.board[9][6] = 28
-            # self.board[8][1] =  41
-            # self.board[11][9] = 29
-            # self.board[13][4] = 31
-            # self.board[10][2] = 37
-            # self.board[19][7] = 91
-            # self.board[16][3] = 51
+            self.board[3][2] = 9
+            self.board[3][7] = 17
+            self.board[4][5] = 15
+            self.board[5][9] = 21
+            self.board[9][6] = 28
+            self.board[8][1] =  41
+            self.board[11][9] = 29
+            self.board[13][4] = 31
+            self.board[10][2] = 37
+            self.board[19][7] = 91
+            self.board[16][3] = 51
 
             # self.board[4][5] = 5
             # self.board[3][2] = 17
@@ -127,16 +128,16 @@ class diveGame:
             # self.board[19][2] = 101
             # self.board[17][3] = 70
 
-            self.board[3][5] = 9
-            self.board[8][2] = 17
-            self.board[5][9] = 24
-            self.board[7][0] =  34
-            self.board[11][9] = 29
-            self.board[14][7] = 42
-            sel f.board[10][2] = 29
-            self.board[19][2] = 90
-            self.board[17][3] = 42
-            self.board[19][9] = 39
+            # self.board[3][5] = 9
+            # self.board[8][2] = 17
+            # self.board[5][9] = 24
+            # self.board[7][0] =  34
+            # self.board[11][9] = 29
+            # self.board[14][7] = 42
+            # self.board[10][2] = 29
+            # self.board[19][2] = 90
+            # self.board[17][3] = 42
+            # self.board[19][9] = 39
 
 
         self.playerLoc = playerLoc
@@ -174,6 +175,7 @@ class diveGame:
         return self.gameOver
 
     def getSuccessor(self, action):
+        assert action in self.getLegalActions()
         if (action[2] == "exit"):
             return (diveGame(board = boardCopy(self.board), playerLoc = self.playerLoc, timeLeft = self.timeLeft, oxygenLeft = self.oxygenLeft, 
                 holding = self.holding[:], tankSize = self.tankSize, cash = self.cash, gameOver = True, tanks = self.tanks), 0)
@@ -219,8 +221,7 @@ class diveGame:
                 else:
                     toPrint.append(str(self.board[i][j]))
             if print_to_screen:
-                #listPrint(toPrint)
-                toPrint = [x.replace('0', ' _ ') for x in toPrint]
+                toPrint = [" _ " if x == "0" else x for x in toPrint ]
                 print(" ".join(formatPrint(toPrint, self.board)))
             board.append(formatPrint(toPrint, self.board))
         if print_to_screen:
