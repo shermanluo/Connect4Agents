@@ -168,6 +168,15 @@ def otherSurface(loc):
 def heightDiff(action, correction):
     return action[0] - correction[0]
 
+def groupMistake(mistake):
+    if mistake == CorrectionType.A or mistake == CorrectionType.J or mistake == CorrectionType.B:
+        return 1
+    if mistake == CorrectionType.D or mistake == CorrectionType.E or mistake == CorrectionType.F:
+        return 2
+    if mistake == CorrectionType.I or mistake == CorrectionType.K:
+        return 3
+    return None
+
 def categorize(state, action, cRollout, aRollout):
     actions = state.getLegalActions()
     correction = cRollout[0]

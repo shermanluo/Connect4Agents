@@ -78,7 +78,7 @@ class diveGame:
 
     def __init__(self, board = None, playerLoc = (0,0), timeLeft = defaultTime, oxygenLeft = defaultOxygen, holding = [], tankSize = defaultTank, cash = 0, gameOver = False, tanks = tanks):
         self.board = board
-        if tanks:
+        if tanks or tanks == {}:
             self.tanks = tanks
         if not board and playerLoc:
             self.board = zeroBoard()

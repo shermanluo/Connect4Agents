@@ -11,10 +11,10 @@ from comparison import explainKgreatestPlus1, explainKgreatest, explainIncreasin
 import pickle
 import argparse
 import pdb
-
+from categorize import categorize, groupMistake
 #returns state, action rollout. Last action will be None
 
-NUM_ITERS = 40000
+NUM_ITERS = 100000
 
 def formatScore(score):
     return format(score, '.2f')
@@ -65,7 +65,7 @@ def printActions(gameState, actions):
         else:
             curr += "|" + str(gameState.board[action[0]][action[1]])
 
-def getActions(state, depth, num_iters, allData = False, allRollouts = False):
+def getActions(state, depth, num_iters, allData = False, allRollouts = False, allRolloutsAdd = False):
     if state.isOver():
         s = m2.State()
         s.gs = state
@@ -89,6 +89,8 @@ def getActions(state, depth, num_iters, allData = False, allRollouts = False):
         return [[actions[i]] + results[i][1] for i in range(len(actions))], values
     if allData:
         return [[state.cash] + scores for _,_,scores,_ in results], bestStates, bestIdx, NA, [state] + bestStates[bestIdx], bestActions
+    if allRolloutsAdd:
+        return bestScore, bestActions, NA, [state] + bestStates[bestIdx], [[actions[i]] + results[i][1] for i in range(len(actions))], values
     return bestScore, bestActions, NA, [state] + bestStates[bestIdx]
 
 def main():
@@ -209,8 +211,7 @@ def main():
 #         index += 1
 
 #     return Rr, rS, human_rollout, humanscores, bestActions, [x[1] for x in human_rollout][maxIndex:], maxIndex, data
-
-def fatalFlaw(game, moves):
+def fatalFlaw(game, moves, threeGroups = False):
     human_rollout, rewards, humanscores = getHumanRollout(game, moves, getscore = True)
     # #printActions(game, getActions(game, qvalues))
     print()
@@ -229,6 +230,7 @@ def fatalFlaw(game, moves):
     Brscore = 0
     BrRollout = None
     BrActions = None
+    group = None
     assert humanscores[-1] == finalScore
     for state, human_action in human_rollout:
         sofar = getSoFarScore(rewards, index)
@@ -238,7 +240,8 @@ def fatalFlaw(game, moves):
         #rhscore, hractions = getActions(state.getSuccessor(human_action)[0], 0, 50000)
         s = m2.State()
         s.gs = state
-        rscore, ractions, NA, rstates = getActions(state, 1, NUM_ITERS)
+        rscore, ractions, NA, rstates, rollouts, scores = getActions(state, 1, NUM_ITERS, allRolloutsAdd = True)
+        humanOptimalRollout = [roll for roll in rollouts if roll[0] == human_action][0]
         humanNode = [x for x, y in NA if y == human_action][0]
         rhscore = max(humanNode.reward, finalScore)
 
@@ -251,7 +254,12 @@ def fatalFlaw(game, moves):
             print(index, "| BestAction", ractions[0], "~best score: ", formatScore(rscore), "| humanAction", human_action,
             "~best score: ", formatScore(rhscore))
         diff = rscore - rhscore
-        if diff > maxDiff and human_action != ractions[0]:
+        if human_action != ractions[0]:
+            mType = categorize(state, human_action, ractions, humanOptimalRollout)
+            print(mType)
+            group = groupMistake(mType)
+            print(group)
+        if (diff > maxDiff and human_action != ractions[0] and not threeGroups) or (diff > maxDiff and human_action != ractions[0] and group):
             maxDiff = diff
             maxAction = ractions[0]
             maxIndex = index
@@ -259,7 +267,10 @@ def fatalFlaw(game, moves):
             Brscore = rscore
             BrRollout = rstates
             BrActions = ractions
+            maxGroup = group
         index += 1
+    if not BrActions:
+        return None, None, None, None, None, None, None, None
     BrActions = BrActions + [None]
     state, human_action = human_rollout[maxIndex]
     print("Fatal Flaw state")
@@ -293,7 +304,7 @@ def fatalFlaw(game, moves):
     f.close()
     #print_max_diff_vals(BrRollout, hR, valuefn, rS, hS)
     #explain(BrRollout, rS)
-    return BrRollout, rS, hR, hS, BrActions, [x[1] for x in human_rollout][maxIndex:], maxIndex
+    return BrRollout, rS, hR, hS, BrActions, [x[1] for x in human_rollout][maxIndex:], maxIndex, maxGroup
 
 
 
