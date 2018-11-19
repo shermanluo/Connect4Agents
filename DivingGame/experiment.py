@@ -140,8 +140,8 @@ class Experiment:
         self.buttons['time'] = self.time
         self.buttons['oxygen'] = self.oxygen
         self.buttons['holding'] = self.holding
-        
-        
+
+
         if playing:
             def clickTank(action):
                 def executeMove():
@@ -154,10 +154,22 @@ class Experiment:
                             self.lbl.config(text = "Tank | Cost: " + str(action[0]) + " | Size: " + str(action[1]))
                             self.next = Button(self.master, text="Execute Move", font = ("Helvetica", 15), command = do)
                             self.next.grid(row = 5, column=15)
-                            self['next'] = self.next
+                            self.buttons['next'] = self.next
                         else:
                             print(self.state.cash, action[1])
                             self.lbl.config(text = "Cannot Buy Tank")
+                    if self.prevButton:
+                        prevbutton = self.buttons[self.prevButton]
+                        if self.prevButton != self.state.playerLoc:
+                            if self.prevButton == (0, 0) or self.prevButton == (0, 9):
+                                prevbutton.config(background = "Green")
+                            elif len(self.prevbutton) == 3:
+                                prevbutton.config(background = "white")
+                            else:
+                                prevbutton.config(background = "Light Gray")
+                    self.buttons[action].config(background = "orange")
+                    self.prevButton = action
+                    return do
                 return executeMove
         else:
             def clickTank(action):
@@ -173,12 +185,14 @@ class Experiment:
                 t = Button(self.master, text = "Tank | Cost: " + str(tank[0]) + " | Size: " + str(tank[1]), font = ("Helvetica", 15), command = clickTank(tank), state = enabled)
                 t.grid(row = 10 + c, column = 15)
                 self.tanks.append(t)
+                self.buttons[tank] = t
                 c += 1
             else:
                 t = Button(self.master, text = "Tank | Cost: " + str(tank[0]) + " | Size: " + str(tank[1]), font = ("Helvetica", 15), command = clickTank(tank), state = enabled)
                 t.config(state = "disabled")
                 t.grid(row = 10 + c, column = 15)
                 self.tanks.append(t)
+                self.buttons[tank] = t
                 c += 1
         if self.state.playerLoc == (0,0) or self.state.playerLoc == (0,9) and playing:
             def exit():
