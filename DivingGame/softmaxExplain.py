@@ -103,7 +103,7 @@ def smExplainGreedy(states, actions): #K=3 evaluations of actions
 
 
 NUM_TRIES = 4
-THRESHOLD = 0.97
+THRESHOLD = 0.975
 
 
 kagent = MaxAgent(depth=3)
@@ -128,7 +128,7 @@ def pathProb(path):
             if nxt == path[i + 1]:
                 takenScore = pow(math.e, 0.04 * score)
                 ktakenScore = pow(math.e, 0.1 * kscore)
-        prob *= 0.33 * takenScore / total + 0.67 * ktakenScore / ktotal 
+        prob *= 0.305 * takenScore / total + 0.695 * ktakenScore / ktotal 
         
 #calculate the probability of inferring between start and end
 def calculateProbability(start, end, pathProbs, rR): #pathprobs is an array of the probabilities of each action. start and end are indices
@@ -171,12 +171,12 @@ def findStates():
     results = [] #results is a list of the probabilities of each action in the rollout
     for idx, vector in data:
         qvalue = pow(math.e, 0.04 * vector[idx])
-        results.append(0.33 * (qvalue / sum([pow(math.e, 0.04 * x) for x in vector])))
+        results.append(0.305 * (qvalue / sum([pow(math.e, 0.04 * x) for x in vector])))
 
     kresults = []
     for idx, vector in kdata:
         kvalue = pow(math.e, 0.1 * vector[idx])
-        kresults.append(0.67 * (kvalue / sum([pow(math.e, 0.1 * x) for x in vector])))
+        kresults.append(0.695 * (kvalue / sum([pow(math.e, 0.1 * x) for x in vector])))
     for i in range(len(results)):
         results[i] += kresults[i]
     idx = [x for x in range(len(data) + 1)]
@@ -221,12 +221,12 @@ def findStates2(rR, rA, data = None):
     for idx, vector in data:
         print(vector[idx])
         qvalue = pow(math.e, 0.04 * vector[idx])
-        results.append(0.33 * (qvalue / sum([pow(math.e, 0.04 * x) for x in vector])))
+        results.append(0.305 * (qvalue / sum([pow(math.e, 0.04 * x) for x in vector])))
 
     kresults = []
     for idx, vector in kdata:
         kvalue = pow(math.e, 0.1 * vector[idx])
-        kresults.append(0.67 * (kvalue / sum([pow(math.e, 0.1 * x) for x in vector])))
+        kresults.append(0.695 * (kvalue / sum([pow(math.e, 0.1 * x) for x in vector])))
     for i in range(len(results)):
         results[i] += kresults[i]
     idx = [x for x in range(len(data) + 1)]

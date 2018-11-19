@@ -6,6 +6,7 @@ import pickle
 from fatal_flaw import fatalFlaw
 import pdb
 from softmaxExplain import findStates2
+from datetime import datetime
 
 def manDist(A, B):
     return abs(A[0] - B[0]) + abs(A[1] - B[1])
@@ -30,7 +31,7 @@ practiceBoard1 = diveGame(
     holding = [], 
     tankSize = 25, 
     cash = 0, 
-    gameOver = False, 
+    gameOver = False,      
     tanks = {(30, 30, "tank"), (70, 55, "tank")})
 
 board2 = zeroBoard()
@@ -76,20 +77,51 @@ class Experiment:
         self.topLabel.grid(row=0, column = 15)
 
         self.lbl = Label(master, text="Click on a location to prepare a move. If a tank is available and you are surfaced then you can purchase it.", font=("Helvetica", 15))
-        self.lbl.grid(row = 5, column=15)
+        self.lbl.grid(row = 4, column=15)
 
         self.var = tkinter.IntVar()
         self.showing = False
 
+        self.distance = 0
+        self.locations = []
 
-        f = open('store.pckl', 'rb')
-        rR, rS, hR, hS, rA, hA = pickle.load(f)
+        self.prevButton = None
+        self.buttons = {}
+
+        self.reset = Button(self.master, text = "Reset Distance Counter", font = ("Helvetica", 15), command = self.resetDist)
+        self.reset.grid(row = 7, column = 15)
+        self.distanceLabel = Label(self.master, text = "", font = ("Helvetica", 14))
+        self.distanceLabel.grid(row = 8, column = 15)
+        self.file = {}
+
+
+        # f = open('store.pckl', 'rb')
+        # rR, rS, hR, hS, rA, hA = pickle.load(f)
         #self.showRollout(rR)
         self.experiment()
         #self.playGame()
 
 
+        f = open(self.filename, "wb")
+        pickle.dump(self.file, f)
+        f.close()
+
+
+    def resetDist(self):
+        self.distance = 0
+        self.locations = []
+        self.distanceLabel.config(text = " ")
+
+    def destroyButtons(self):
+        for key, button in self.buttons.items():
+            button.destroy()
+        self.prevButton = None
+
     def displayBoard(self, playing = True):
+        self.destroyButtons()
+
+        self.resetDist()
+
         if playing:
             self.lbl.config( text="Click on a location to prepare a move. If a tank is available and you are surfaced then you can purchase it.", fg = "black")
         if self.state.isOver():
@@ -99,21 +131,30 @@ class Experiment:
         self.cash.grid(row = 15, column = 15)
         self.time = Label(self.master, text = "    Time: " + str(self.state.timeLeft) + "     ", font = ("Helvetica", 15))
         self.time.grid(row = 16, column = 15)
-        self.oxygen = Label(self.master, text = "        Oxygen Left: " + str(self.state.oxygenLeft) + "       ", font = ("Helvetica", 15))
+        self.oxygen = Label(self.master, text = "        Oxygen Left: " + str(self.state.oxygenLeft) + " / " + str(self.state.tankSize), font = ("Helvetica", 15))
         self.oxygen.grid(row = 17, column = 15)
         self.holding = Label(self.master, text = "     Holding: " + str(sum((self.state.holding))) + "     ", font = ("Helvetica", 15))
         self.holding.grid(row = 18, column = 15)
+
+        self.buttons['cash'] = self.cash
+        self.buttons['time'] = self.time
+        self.buttons['oxygen'] = self.oxygen
+        self.buttons['holding'] = self.holding
+        
+        
         if playing:
             def clickTank(action):
                 def executeMove():
                     def do():
-                        self.var.set(1)
                         self.move = action
+                        if self.move in self.state.getLegalActions():
+                            self.var.set(1)
                     if not self.showing:    
                         if  (self.state.playerLoc == (0,0) or self.state.playerLoc == (0,9)) and self.state.cash >= action[0]:
                             self.lbl.config(text = "Tank | Cost: " + str(action[0]) + " | Size: " + str(action[1]))
                             self.next = Button(self.master, text="Execute Move", font = ("Helvetica", 15), command = do)
-                            self.next.grid(row = 6, column=15)
+                            self.next.grid(row = 5, column=15)
+                            self['next'] = self.next
                         else:
                             print(self.state.cash, action[1])
                             self.lbl.config(text = "Cannot Buy Tank")
@@ -144,58 +185,83 @@ class Experiment:
                 self.move = (None, None, 'exit')
                 self.var.set(1) 
             print("EXIT")
-            self.exit = Button(self.master, text = "EXIT with all your current cash! ", font = ("Helvetica", 15), command = exit, state = enabled)
-            if not (self.state.playerLoc == (0, 0) or self.state.playerLoc == (0, 9)):
-                seld.exit.config(state = "disabled")
+            if (self.state.playerLoc == (0, 0) or self.state.playerLoc == (0, 9)):
+                self.exit = Button(self.master, text = "EXIT with all your current cash! ", font = ("Helvetica", 15), command = exit, state = enabled)
+                self.buttons['exit'] = self.exit
             self.exit.grid(row = 19, column = 15)
         for i in range(0, 20):
             for j in range(0, 10):
-                fg = "black"
-                color = "white"
-                font = ("Helvetica", 11)
-                if i > 0:
-                    color = "navy"
-                if self.state.board[i][j]:
-                    color = "Light Gray"
-                    text = str(self.state.board[i][j])
-                elif (i, j) == (0,0) or (i, j) == (0,9):
-                    text = "EXIT"
-                    color = "Green"
-                else:
-                    text = ""
-                if self.state.playerLoc == (i, j):
-                    text = "P"
-                    fg = "brown4"
-                    font = ("Helvetica", 10, "bold")
-                if self.state.playerLoc == (i, j) and self.state.playerLoc[0] != 0: 
+                if not (i == 0 and (j < 9 and j > 0)):
+                    bg = None
+                    fg = "black"
                     color = "white"
-                b = Button(self.master)
-                b.grid(row=i, column = j)
-                b.row = i
-                b.column = j
-                def click(action):
-                    i = action[0]
-                    j = action[1]
-                    def do():
-                        valid = False
-                        def executeMove(action):
-                            def do():
-                                print(action)
-                                self.var.set(1)
-                                self.move = action
-                            return do 
-                        if not self.showing:
-                            if (i, j) == (0, 0) or (i, j) == (0, 9):
-                                valid = True
-                                text = "Surface Location: " + str((i, j)) + "| distance is " + str(manDist((i, j), self.state.playerLoc))
-                            if self.state.board[i][j]:
-                                valid = True
-                                text = "Pick up " + str(self.state.board[i][j])+ " at location " + str((i, j)) + " | distance is " + str(manDist((i, j), self.state.playerLoc))
-                            if valid:
-                                self.lbl.config(text = text)
-                                self.next = Button(self.master, text="Execute Move", font = ("Helvetica", 15), command = executeMove(action), state = enabled)
-                                self.next.grid(row = 6, column=15)
-                    return do    
+                    font = ("Helvetica", 11)
+                    if i > 0:
+                        color = "navy"
+                    if self.state.board[i][j]:
+                        color = "Light Gray"
+                        text = str(self.state.board[i][j])
+                    elif (i, j) == (0,0) or (i, j) == (0,9):
+                        text = ""
+                        color = "Green"
+                    else:
+                        text = ""
+                    if self.state.playerLoc == (i, j):
+                        text = "P"
+                        color = "Yellow"
+                        fg = "brown4"
+                        font = ("Helvetica", 10, "bold")
+                    if self.state.playerLoc == (i, j) and self.state.playerLoc[0] != 0: 
+                        color = "Yellow"
+                    b = Button(self.master)
+                    b.grid(row=i, column = j)
+                    b.row = i
+                    b.column = j
+                    self.buttons[(i, j)] = b
+                    def click(action):
+                        i = action[0]
+                        j = action[1]
+                        def do():
+                            valid = False
+                            def executeMove(action):
+                                def do():
+                                    print(action)
+                                    self.move = action
+                                    self.prevButton = None
+                                    if self.move in self.state.getLegalActions():
+                                        self.var.set(1)
+                                return do
+                            if not self.showing:
+                                if ((i, j) == (0, 0) or (i, j) == (0, 9)) and (i, j) != self.state.playerLoc:
+                                    valid = True
+                                    text = "Surface Location: " + str((i, j))# + "| distance is " + str(manDist((i, j), self.state.playerLoc))
+                                if self.state.board[i][j]:
+                                    valid = True
+                                    text = "Pick up " + str(self.state.board[i][j])+ " at location " + str((i, j))# + " | distance is " + str(manDist((i, j), self.state.playerLoc))
+                                if valid:
+                                    if self.prevButton:
+                                        prevbutton = self.buttons[self.prevButton]
+                                        if self.prevButton != self.state.playerLoc:
+                                            if self.prevButton == (0, 0) or self.prevButton == (0, 9):
+                                                prevbutton.config(background = "Green")
+                                            else:
+                                                prevbutton.config(background = "Light Gray")
+                                    self.buttons[(i, j)].config(background = "orange")
+                                    self.prevButton = (i, j)
+                                    if not self.locations:
+                                        self.distance += manDist((i, j), self.state.playerLoc)
+                                    else:
+                                        self.distance += manDist((i, j), self.locations[-1])
+                                    self.locations += [(i, j)]
+                                    self.distanceLabel.config(text = str(self.locations) + ": " + str(self.distance))
+                                    self.lbl.config(text = text)
+                                    self.next = Button(self.master, text="Execute Move", font = ("Helvetica", 15), command = executeMove(action), state = enabled)
+                                    self.next.grid(row = 5, column=15)
+                                    self.buttons['next'] = self.next
+
+                        return do    
+
+
                 b.config(highlightthickness=0, text = text, width="3",height="2",font= font, fg = fg, command = click((i, j, "move")), background = color)
 
 
@@ -206,9 +272,11 @@ class Experiment:
         states = []
         states.append(self.state)
         actions = []
+        times = []
         self.displayBoard()
         self.move = None
         while (not self.state.isOver()):
+            now = datetime.now()
             self.displayBoard()
             root.wait_variable(self.var)
             if self.move not in self.state.getLegalActions():
@@ -220,17 +288,24 @@ class Experiment:
             self.move = None
             self.var.set(0)
             states.append(self.state)
-        f = open(self.filename, "wb")
+            then = datetime.now()
+            times.append(then - now)
         self.lbl.config(text="Game Over, Your Score: " + str(self.state.cash))
         self.topLabel.config(text="")
-        pickle.dump((self.state.cash, stateActions), f)
+        if 'playthrough' not in self.file:
+            self.file["playthrough"] = []
+            self.file["playthroughTimes"] = []
+        self.file['playthrough'].append((states, actions))
+        self.file['playthroughTimes'].append(times)
         return actions, states
 
     def playStates(self, states):
         self.showing = False
         self.topLabel.config(text="                              Choose the next move in the state                    ")
         stateActions = []
+        times = []
         for state in states:
+            now = datetime.now()
             self.state = state
             self.displayBoard()
             root.wait_variable(self.var)
@@ -242,6 +317,10 @@ class Experiment:
             for tank in self.tanks:
                 print("GI")
                 tank.destroy()
+            then = datetime.now()
+            times.append(then - now)
+        self.file['testStates'] = stateActions
+        self.file['testStatesTimes'] = times
         return stateActions
 
     def showRollout(self, states):
@@ -257,22 +336,28 @@ class Experiment:
             self.state = state
             self.displayBoard(playing = False)
             self.nextStateButton = Button(self.master, text = "Next State", font = ("Helvetica", 15), command = nextState)
-            self.nextStateButton.grid(row=6, column = 16)
+            self.nextStateButton.grid(row=5, column = 16)
             root.wait_variable(self.nextState)
             self.nextState.set(0)
         self.nextStateButton.destroy()
         self.topLabel.config(text="")
 
     def showRolloutWithBack(self, states, ff = False):
+        self.destroyButtons()
+        times = []
+        actions = []
+
         self.showing = True
         self.topLabel.config(text="YOU ARE OBSERVING A SERIES OF STATES IN A PLAN")
         self.nextState = tkinter.IntVar()
         def nextState():
             self.nextState.set(1)
             self.prev = False
+            actions.append("next")
         def prevState():
             self.nextState.set(1)
             self.prev  = True
+            actions.append("prev")
         i = 0
         while i < len(states):
             if ff:
@@ -292,8 +377,13 @@ class Experiment:
             self.nextStateButton.grid(row=6, column = 17)
             self.prevStateButton = Button(self.master, text = "Prev State", font = ("Helvetica", 15), command = prevState)
             self.prevStateButton.grid(row=6, column = 16)
+            self.buttons['prevStateButton'] =self.prevStateButton
+            self.buttons['nextStateButton'] = self.nextStateButton
 
+            now = datetime.now()
             root.wait_variable(self.nextState)
+            after = datetime.now()
+            times.append(after - now)
 
             if self.prev:
                 if i > 0:
@@ -301,56 +391,60 @@ class Experiment:
             else:
                 i += 1
             self.nextState.set(0)
-        self.nextStateButton.config(state = 'disabled')
-        self.prevStateButton.config(state = 'disabled')
-        # self.nextStateButton.grid_forget()
-        # self.prevStateButton.grid_forget()
         self.topLabel.config(text="")
+        self.file["ShowRolloutActions"] = actions
+        self.file["ShowRolloutTimes"] = times
 
     def experiment(self):
-        # self.state = practiceBoard1
-        # startState = self.state
-        # actions, states = self.playGame()
+        self.state = practiceBoard1
+        startState = self.state
+        actions, states = self.playGame()
 
-        # rR, rS, hR, hS, rA, hA, flawIndex, group = fatalFlaw(startState, actions, threeGroups = True)
-        # if not group:
-        #     self.state = practiceBoard2 #<- FILLER
-        #     startState = self.state
-        #     actions, states = self.playGame()
-        #     self.next.grid_forget()
-        #     rR, rS, hR, hS, rA, hA, flawIndex, group = fatalFlaw(startState, actions, threeGroups = True)
+        rR, rS, hR, hS, rA, hA, flawIndex, group, mtype = fatalFlaw(startState, actions, threeGroups = True)
+        if not group:
+            self.state = practiceBoard2 #<- FILLER
+            startState = self.state
+            actions, states = self.playGame()
+            self.next.grid_forget()
+            rR, rS, hR, hS, rA, hA, flawIndex, group, mtype = fatalFlaw(startState, actions, threeGroups = True)
 
-        # print("Group:", group)
+        if not group:
+            raise Exception
+
+        self.file['FatalFlawData'] = (rR, rS, hR, hS, rA, hA, flawIndex, group, mtype)
+        self.file['group'] = group
+
+        print("Group:", group)
 
         group = 3
 
         if group:
-            # idxs = findStates2(rR, rA)
-            # def click():
-            #     self.windowClick.set(1)
-            # self.windowClick = tkinter.IntVar()
-            # self.topLabel.config(text = "You will see where you made the biggest error. We start from the beginning.", fg = 'red')
-            # self.topLabelButton = Button(self.master, text = 'Begin', font = ("Helvetica", 18), command = click)
-            # self.topLabelButton.grid(row=1, column = 15)
-            # root.wait_variable(self.windowClick)
-            # self.topLabel.config(fg = 'black')
+            idxs = findStates2(rR, rA)
+            self.file['idxs'] = idxs
+            def click():
+                self.windowClick.set(1)
+            self.windowClick = tkinter.IntVar()
+            self.topLabel.config(text = "You will see where you made the biggest error. We start from the beginning.", fg = 'red')
+            self.topLabelButton = Button(self.master, text = 'Begin', font = ("Helvetica", 18), command = click)
+            self.topLabelButton.grid(row=1, column = 15)
+            root.wait_variable(self.windowClick)
+            self.topLabel.config(fg = 'black')
 
-            # self.topLabelButton.config(state = 'disabled')
+            self.topLabelButton.config(state = 'disabled')
 
-            # self.showRolloutWithBack([(x, y) for x, y in enumerate(states) if x < flawIndex + 2], ff = True)
+            self.showRolloutWithBack([(x, y) for x, y in enumerate(states) if x < flawIndex + 2], ff = True)
 
-            # self.topLabelButton.config(state = 'normal')
-            # self.windowClick.set(0)
-            # self.topLabel.config(text = "This is what you should have done instead!", fg = 'red')
-            # root.wait_variable(self.windowClick)
+            self.topLabelButton.config(state = 'normal')
+            self.windowClick.set(0)
+            self.topLabel.config(text = "This is what you should have done instead!", fg = 'red')
+            root.wait_variable(self.windowClick)
 
-            # self.topLabelButton.grid_forget()
+            self.topLabelButton.grid_forget()
 
-            # self.topLabel.config(fg = 'black')
-            # self.windowClick.set(0)
+            self.topLabel.config(fg = 'black')
+            self.windowClick.set(0)
 
-            # self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in idxs])
-
+            self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in idxs])
 
             if group == 1:
                 f = open("group1States", "rb")
@@ -360,9 +454,6 @@ class Experiment:
                 f = open("group3States", "rb")
             tStates = reconstructStates(pickle.load(f))     
             stateActions = self.playStates(tStates)
-            f = open(self.filename + "D", "wb")
-            pickle.dump((states, actions, stateActions), f)
-            pass
 
 
 def reconstructStates(dicts):

@@ -14,7 +14,7 @@ import pdb
 from categorize import categorize, groupMistake
 #returns state, action rollout. Last action will be None
 
-NUM_ITERS = 100000
+NUM_ITERS = 1000
 
 def formatScore(score):
     return format(score, '.2f')
@@ -268,9 +268,10 @@ def fatalFlaw(game, moves, threeGroups = False):
             BrRollout = rstates
             BrActions = ractions
             maxGroup = group
+            maxType = mType
         index += 1
     if not BrActions:
-        return None, None, None, None, None, None, None, None
+        return None, None, None, None, None, None, None, None, None
     BrActions = BrActions + [None]
     state, human_action = human_rollout[maxIndex]
     print("Fatal Flaw state")
@@ -304,7 +305,7 @@ def fatalFlaw(game, moves, threeGroups = False):
     f.close()
     #print_max_diff_vals(BrRollout, hR, valuefn, rS, hS)
     #explain(BrRollout, rS)
-    return BrRollout, rS, hR, hS, BrActions, [x[1] for x in human_rollout][maxIndex:], maxIndex, maxGroup
+    return BrRollout, rS, hR, hS, BrActions, [x[1] for x in human_rollout][maxIndex:], maxIndex, maxGroup, maxType
 
 
 

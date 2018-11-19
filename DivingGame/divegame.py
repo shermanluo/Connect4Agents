@@ -48,10 +48,10 @@ class diveGame:
 
 
     #tanks = {(20, 30, "tank"), (45, 45, "tank"), (60, 55, "tank")} #cost, size
-    tanks = {(20, 30, "tank"), (45, 45, "tank"), (60, 55, "tank")} #cost, size
-    #tanks = {(20, 30, "tank"), (50, 45, "tank"), (70, 55, "tank")} #cost, size
-    #tanks = {(25, 30, "tank"), (40, 45, "tank"), (60, 50, "tank")} #cost, size
-    #tanks = {(25, 30, "tank"), (45, 45, "tank"), (60, 55, "tank")} #cost, size
+    tanks = {(29, 30, "tank"), (60, 45, "tank"), (100, 55, "tank")} #cost, size
+    #tanks = {(30, 30, "tank"), (50, 45, "tank"), (100, 55, "tank")} #cost, size
+    #tanks = {(40, 30, "tank"), (60, 45, "tank"), (80, 50, "tank")} #cost, size
+    #tanks = {(40, 30, "tank"), (90, 45, "tank"), (120, 55, "tank")} #cost, size
 
 
     # defaultOxygen = 25
@@ -94,10 +94,10 @@ class diveGame:
             # self.board[19][2] = 151
             # self.board[16][7] = 79
 
-            self.board[3][2] = 9
-            self.board[3][7] = 17
+            self.board[3][2] = 11
+            self.board[3][7] = 25
             self.board[4][5] = 15
-            self.board[5][9] = 21
+            self.board[5][9] = 31
             self.board[9][6] = 28
             self.board[8][1] =  41
             self.board[11][9] = 29
@@ -108,8 +108,8 @@ class diveGame:
 
             # self.board[4][5] = 5
             # self.board[3][2] = 17
-            # self.board[5][9] = 11
-            # self.board[1][9] = 21
+            # self.board[5][9] = 21
+            # self.board[1][9] = 29
             # self.board[5][7] = 24
             # self.board[7][0] =  32
             # self.board[11][9] = 29
@@ -128,14 +128,14 @@ class diveGame:
             # self.board[19][2] = 101
             # self.board[17][3] = 70
 
-            # self.board[3][5] = 9
-            # self.board[8][2] = 17
-            # self.board[5][9] = 24
+            # self.board[3][5] = 29
+            # self.board[8][2] = 32
+            # self.board[5][9] = 44
             # self.board[7][0] =  34
             # self.board[11][9] = 29
             # self.board[14][7] = 42
-            # self.board[10][2] = 29
-            # self.board[19][2] = 90
+            # self.board[10][2] = 31
+            # self.board[19][2] = 95
             # self.board[17][3] = 42
             # self.board[19][9] = 39
 
