@@ -14,7 +14,7 @@ if __name__ == "__main__":
     f = open('store.pckl', 'rb')
     rR, rS, hR, hS, rA, hA = pickle.load(f)
 
-num_iters = 10#40000
+num_iters = 1000
 
 def smExplain(states, actions): #Qvalues
     data = []

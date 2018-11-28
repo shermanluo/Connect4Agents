@@ -152,6 +152,8 @@ class Experiment:
                     if not self.showing:    
                         if  (self.state.playerLoc == (0,0) or self.state.playerLoc == (0,9)) and self.state.cash >= action[0]:
                             self.lbl.config(text = "Tank | Cost: " + str(action[0]) + " | Size: " + str(action[1]))
+                            if hasattr(self, 'next'):
+                                        self.next.destroy()
                             self.next = Button(self.master, text="Execute Move", font = ("Helvetica", 15), command = do)
                             self.next.grid(row = 5, column=15)
                             self.buttons['next'] = self.next
@@ -163,7 +165,7 @@ class Experiment:
                         if self.prevButton != self.state.playerLoc:
                             if self.prevButton == (0, 0) or self.prevButton == (0, 9):
                                 prevbutton.config(background = "Green")
-                            elif len(self.prevbutton) == 3:
+                            elif len(self.prevButton) == 3:
                                 prevbutton.config(background = "white")
                             else:
                                 prevbutton.config(background = "Light Gray")
@@ -239,7 +241,6 @@ class Experiment:
                             valid = False
                             def executeMove(action):
                                 def do():
-                                    print(action)
                                     self.move = action
                                     self.prevButton = None
                                     if self.move in self.state.getLegalActions():
@@ -269,14 +270,14 @@ class Experiment:
                                     self.locations += [(i, j)]
                                     self.distanceLabel.config(text = str(self.locations) + ": " + str(self.distance))
                                     self.lbl.config(text = text)
+                                    if hasattr(self, 'next'):
+                                        self.next.destroy()
                                     self.next = Button(self.master, text="Execute Move", font = ("Helvetica", 15), command = executeMove(action), state = enabled)
                                     self.next.grid(row = 5, column=15)
                                     self.buttons['next'] = self.next
 
-                        return do    
-
-
-                b.config(highlightthickness=0, text = text, width="3",height="2",font= font, fg = fg, command = click((i, j, "move")), background = color)
+                        return do   
+                    b.config(highlightthickness=0, text = text, width="3",height="2",font= font, fg = fg, command = click((i, j, "move")), background = color)
 
 
     def playGame(self):
@@ -362,7 +363,10 @@ class Experiment:
         actions = []
 
         self.showing = True
-        self.topLabel.config(text="YOU ARE OBSERVING A SERIES OF STATES IN A PLAN")
+        if ff:
+            self.topLabel.config(text="YOU ARE VIEWING A SUPERIOR ALTERNATE PLAN")
+        else:    
+            self.topLabel.config(text="YOU ARE OBSERVING A SERIES OF STATES IN A PLAN")
         self.nextState = tkinter.IntVar()
         def nextState():
             self.nextState.set(1)
@@ -376,9 +380,9 @@ class Experiment:
         while i < len(states):
             if ff:
                 if i == len(states) - 2:
-                    self.topLabel.config(text = "                              Right before your Fatal Flaw", fg = "red")
+                    self.topLabel.config(text = "                                                       Right before your Fatal Flaw", fg = "red")
                 elif i == len(states) - 1:
-                    self.topLabel.config(text = "                              Result of your Fatal Flaw", fg = "red")
+                    self.topLabel.config(text = "                                                            Result of your Fatal Flaw", fg = "red")
                 else:
                     self.topLabel.config(text=" YOU ARE OBSERVING A SERIES OF STATES IN A PLAN", fg = "black")
 
@@ -386,6 +390,10 @@ class Experiment:
             self.lbl.config(text = "STATE NUMBER: " + str(index), fg = "green")
             self.state = state
             self.displayBoard(playing = False)
+
+            if hasattr(self, 'prevStateButton'):
+                self.prevStateButton.destroy()
+                self.nextStateButton.destroy()
 
             self.nextStateButton = Button(self.master, text = "Next State", font = ("Helvetica", 15), command = nextState)
             self.nextStateButton.grid(row=6, column = 17)
@@ -430,7 +438,6 @@ class Experiment:
 
         print("Group:", group)
 
-        group = 3
 
         if group:
             idxs = findStates2(rR, rA)
@@ -438,6 +445,11 @@ class Experiment:
             def click():
                 self.windowClick.set(1)
             self.windowClick = tkinter.IntVar()
+
+            self.buttons['next'].destroy()
+            self.reset.config(state = 'disabled')
+
+
             self.topLabel.config(text = "You will see where you made the biggest error. We start from the beginning.", fg = 'red')
             self.topLabelButton = Button(self.master, text = 'Begin', font = ("Helvetica", 18), command = click)
             self.topLabelButton.grid(row=1, column = 15)
@@ -448,6 +460,8 @@ class Experiment:
 
             self.showRolloutWithBack([(x, y) for x, y in enumerate(states) if x < flawIndex + 2], ff = True)
 
+            self.prevStateButton.destroy()
+            self.nextStateButton.destroy()
             self.topLabelButton.config(state = 'normal')
             self.windowClick.set(0)
             self.topLabel.config(text = "This is what you should have done instead!", fg = 'red')
@@ -459,6 +473,11 @@ class Experiment:
             self.windowClick.set(0)
 
             self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in idxs])
+
+
+            self.reset.config(state = 'normal')
+
+
 
             if group == 1:
                 f = open("group1States", "rb")
