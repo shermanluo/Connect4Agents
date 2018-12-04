@@ -9,7 +9,7 @@ import pdb
 from joblib import Parallel, delayed
 
 #MCTS scalar.  
-SCALAR= 4000
+SCALAR= 50000
 
 N_CORES = 4
 
@@ -208,7 +208,7 @@ def getRollout(diveGame, num_sims):
         rollout.append(action)
         states.append(node.state.gs)
         scores.append(node.state.gs.cash)
-        num_sims = 4000
+        num_sims = 3000
     return states, rollout, scores, startNode
 
 if __name__=="__main__":

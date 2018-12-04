@@ -12,26 +12,6 @@ import random
 def manDist(A, B):
     return abs(A[0] - B[0]) + abs(A[1] - B[1])
 
-
-board0 = zeroBoard()
-board0[1][5] = 9
-board0[5][3] = 15
-board0[4][2] = 20
-board0[5][7] = 14
-board0[14][3] = 62
-board0[18][9] = 42
-
-practiceBoard0 = diveGame(
-    board = board0, 
-    playerLoc = (0,0), 
-    timeLeft = 85, 
-    oxygenLeft = 20, 
-    holding = [], 
-    tankSize = 20, 
-    cash = 0, 
-    gameOver = False,      
-    tanks = {(30, 40, "tank")})
-
 board1 = zeroBoard()
 board1[1][9] = 11
 board1[3][2] = 15
@@ -48,12 +28,12 @@ practiceBoard1 = diveGame(
     board = board1, 
     playerLoc = (0,0), 
     timeLeft = 85, 
-    oxygenLeft = 20, 
+    oxygenLeft = 25, 
     holding = [], 
-    tankSize = 20, 
+    tankSize = 25, 
     cash = 0, 
     gameOver = False,      
-    tanks = {(30, 30, "tank"), (80, 55, "tank")})
+    tanks = {(30, 30, "tank"), (70, 55, "tank")})
 
 board2 = zeroBoard()
 board2[1][3] = 31
@@ -139,7 +119,6 @@ class Experiment:
         self.prevButton = None
 
     def displayBoard(self, playing = True):
-        self.clicks = []
         self.destroyButtons()
 
         self.resetDist()
@@ -167,7 +146,6 @@ class Experiment:
         if playing:
             def clickTank(action):
                 def executeMove():
-                    self.clicks.append(action)
                     def do():
                         self.move = action
                         if self.move in self.state.getLegalActions():
@@ -277,7 +255,6 @@ class Experiment:
                                     valid = True
                                     text = "Pick up " + str(self.state.board[i][j])+ " at location " + str((i, j))# + " | distance is " + str(manDist((i, j), self.state.playerLoc))
                                 if valid:
-                                    self.clicks.append(action)
                                     if self.prevButton:
                                         prevbutton = self.buttons[self.prevButton]
                                         if self.prevButton != self.state.playerLoc:
@@ -303,6 +280,7 @@ class Experiment:
                         return do   
                     b.config(highlightthickness=0, text = text, width="3",height="2",font= font, fg = fg, command = click((i, j, "move")), background = color)
 
+
     def playGame(self):
         self.showing = False
         self.topLabel.config(text="                              YOU ARE PLAYING THE GAME                    ")
@@ -311,15 +289,12 @@ class Experiment:
         states.append(self.state)
         actions = []
         times = []
-        clicks = []
         self.displayBoard()
         self.move = None
         while (not self.state.isOver()):
             now = datetime.now()
             self.displayBoard()
             root.wait_variable(self.var)
-            clicks.append(self.clicks)
-            print(clicks)
             if self.move not in self.state.getLegalActions():
                 print(self.move, self.state.getLegalActions())
                 raise Exception
@@ -336,10 +311,8 @@ class Experiment:
         if 'playthrough' not in self.file:
             self.file["playthrough"] = []
             self.file["playthroughTimes"] = []
-            self.file['clicks'] = []
         self.file['playthrough'].append((states, actions))
         self.file['playthroughTimes'].append(times)
-        self.file['clicks'].append(clicks)
         return actions, states
 
     def playStates(self, states):
@@ -446,81 +419,10 @@ class Experiment:
         self.file["ShowRolloutTimes"] = times
 
     def experiment(self):
-        self.state = practiceBoard0
-        startState = self.state
-        self.playGame()
-
-
-        self.state = practiceBoard1
-        startState = self.state
-        actions, states = self.playGame()
-
-        rR, rS, hR, hS, rA, hA, flawIndex, group, mtype = fatalFlaw(startState, actions, threeGroups = True)
-        if not group:
-            self.state = practiceBoard2 #<- FILLER
-            startState = self.state
-            actions, states = self.playGame()
-            self.next.grid_forget()
-            rR, rS, hR, hS, rA, hA, flawIndex, group, mtype = fatalFlaw(startState, actions, threeGroups = True)
-
-        if not group:
-            raise Exception
-
-        self.file['FatalFlawData'] = (rR, rS, hR, hS, rA, hA, flawIndex, group, mtype)
-        self.file['group'] = group
-
-        print("Group:", group)
-
-
-        if group:
-            idxs = findStates2(rR, rA)
-            self.file['idxs'] = idxs
-            def click():
-                self.windowClick.set(1)
-            self.windowClick = tkinter.IntVar()
-
-            self.buttons['next'].destroy()
-            self.reset.config(state = 'disabled')
-
-
-            self.topLabel.config(text = "You will see where you made the biggest error. We start from the beginning.", fg = 'red')
-            self.topLabelButton = Button(self.master, text = 'Begin', font = ("Helvetica", 18), command = click)
-            self.topLabelButton.grid(row=1, column = 15)
-            root.wait_variable(self.windowClick)
-            self.topLabel.config(fg = 'black')
-
-            self.topLabelButton.config(state = 'disabled')
-
-            self.showRolloutWithBack([(x, y) for x, y in enumerate(states) if x < flawIndex + 2], ff = True)
-
-            self.prevStateButton.destroy()
-            self.nextStateButton.destroy()
-            self.topLabelButton.config(state = 'normal')
-            self.windowClick.set(0)
-            self.topLabel.config(text = "This is what you should have done instead!", fg = 'red')
-            root.wait_variable(self.windowClick)
-
-            self.topLabelButton.grid_forget()
-
-            self.topLabel.config(fg = 'black')
-            self.windowClick.set(0)
-
-            self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in idxs])
-
-
-            self.reset.config(state = 'normal')
-
-
-
-            if group == 1:
-                f = open("group1States", "rb")
-            if group == 2:
-                f = open("group2States", "rb")
-            if group == 3:
-                f = open("group3States", "rb")
-            tStates = reconstructStates(pickle.load(f))  
-            random.shuffle(tStates)   
-            stateActions = self.playStates(tStates)
+        f = open("General Test States", "rb")
+        tStates = reconstructStates(pickle.load(f))  
+        random.shuffle(tStates)   
+        stateActions = self.playStates(tStates)
 
 
 def reconstructStates(dicts):
