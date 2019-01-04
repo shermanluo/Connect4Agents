@@ -519,7 +519,11 @@ class Experiment:
             if group == 3:
                 f = open("group3States", "rb")
             tStates = reconstructStates(pickle.load(f))  
-            random.shuffle(tStates)   
+            try:
+                random.shuffle(tStates)   
+                print("SHUFFLED")
+            except:
+                pass
             stateActions = self.playStates(tStates)
 
 

@@ -14,7 +14,7 @@ import pdb
 from categorize import categorize, groupMistake
 #returns state, action rollout. Last action will be None
 
-NUM_ITERS = 50000
+NUM_ITERS = 60000
 
 def formatScore(score):
     return format(score, '.2f')
