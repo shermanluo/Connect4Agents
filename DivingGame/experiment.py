@@ -11,8 +11,8 @@ import random
 
 def manDist(A, B):
     return abs(A[0] - B[0]) + abs(A[1] - B[1])
-
-
+                                                                                    
+                                                                                         
 board0 = zeroBoard()
 board0[1][5] = 9
 board0[5][3] = 15
@@ -473,8 +473,8 @@ class Experiment:
 
 
         if group:
-            idxs = findStates2(rR, rA)
-            self.file['idxs'] = idxs
+            #idxs = findStates2(rR, rA)
+            #self.file['idxs'] = idxs
             def click():
                 self.windowClick.set(1)
             self.windowClick = tkinter.IntVar()
@@ -490,7 +490,6 @@ class Experiment:
             self.topLabel.config(fg = 'black')
 
             self.topLabelButton.config(state = 'disabled')
-
             self.showRolloutWithBack([(x, y) for x, y in enumerate(states) if x < flawIndex + 2], ff = True)
 
             self.prevStateButton.destroy()
@@ -505,13 +504,15 @@ class Experiment:
             self.topLabel.config(fg = 'black')
             self.windowClick.set(0)
 
-            self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in idxs])
+            #self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in idxs])
+            self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in [0, 1]])
+            #self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in range(0, len(rR))])
 
 
             self.reset.config(state = 'normal')
 
 
-
+  
             if group == 1:
                 f = open("group1States", "rb")
             if group == 2:
