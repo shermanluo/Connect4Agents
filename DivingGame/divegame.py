@@ -190,7 +190,7 @@ class diveGame:
 
             if dist > self.timeLeft:
                 return (diveGame(board = boardCopy(self.board), playerLoc = location, timeLeft = self.timeLeft - dist, oxygenLeft = self.oxygenLeft - dist, 
-                holding = self.holding[:], tankSize = self.tankSize, cash = 0, gameOver = True, tanks = self.tanks), 0)
+                holding = self.holding[:], tankSize = self.tankSize, cash = 0, gameOver = True, tanks = self.tanks), -self.cash)
 
             if location[0] == 0:
                 return (diveGame(board = boardCopy(self.board), playerLoc = location, timeLeft = self.timeLeft - dist, 

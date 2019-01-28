@@ -507,8 +507,8 @@ class Experiment:
             self.windowClick.set(0)
 
             #self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in idxs])
-            #self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in [0, 1]])
-            self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in range(0, len(rR))])
+            self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in [0, 1]])
+            #self.showRolloutWithBack([(x + flawIndex, y) for x, y in enumerate(rR) if x in range(0, len(rR))])
 
 
             self.reset.config(state = 'normal')
