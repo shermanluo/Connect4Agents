@@ -216,7 +216,7 @@ def categorize(state, action, cRollout, aRollout):
 
 
 
-    if not isUnderwater(state) and targetsPiece(correction) and targetsPiece(action) and goingToGoal(state, cRollout, action, 2):
+    if isUnderwater(state) and targetsPiece(correction) and targetsPiece(action) and goingToGoal(state, cRollout, action, 2):
         return CorrectionType.C1 #missed something along the way
 
 
